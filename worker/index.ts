@@ -21,6 +21,7 @@ import type {
 	Suggestion,
 	Summary,
 	Transaction,
+	TrendRow,
 } from "./types";
 
 type Ctx = Context<{ Bindings: Env }>;
@@ -164,6 +165,22 @@ const app = new Hono<{ Bindings: Env }>()
 			categories: totals.results,
 			accounts: accounts.results,
 		} satisfies Summary);
+	})
+	.get("/trends", async (c) => {
+		const from = c.req.query("from");
+		const to = c.req.query("to");
+		if (!isMonth(from) || !isMonth(to)) {
+			return c.json({ error: "from and to must be YYYY-MM" }, 400);
+		}
+		const { results } = await c.env.DB.prepare(
+			`SELECT budget_month AS month, category_id, type, SUM(amount) AS total
+			FROM transactions
+			WHERE budget_month BETWEEN ? AND ?
+			GROUP BY budget_month, category_id, type`,
+		)
+			.bind(from, to)
+			.all<TrendRow>();
+		return c.json(results);
 	})
 	.get("/insights", async (c) => {
 		const month = c.req.query("month");

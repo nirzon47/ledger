@@ -41,6 +41,20 @@ export function defaultMonth() {
 	return shiftMonth(toMonth(new Date()), 1);
 }
 
+export function monthsEnding(end: string, count: number) {
+	return Array.from({ length: count }, (_, i) =>
+		shiftMonth(end, i - count + 1),
+	);
+}
+
+export function shortMonth(month: string) {
+	const [y, m] = month.split("-").map(Number);
+	const name = new Date(y, m - 1, 1).toLocaleDateString("en-IN", {
+		month: "short",
+	});
+	return m === 1 ? `${name} ${String(y).slice(2)}` : name;
+}
+
 export function monthLabel(month: string) {
 	const [y, m] = month.split("-").map(Number);
 	return new Date(y, m - 1, 1).toLocaleDateString("en-IN", {

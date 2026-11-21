@@ -14,6 +14,7 @@ export type {
 	Suggestion,
 	Summary,
 	Transaction,
+	TrendRow,
 } from "../../worker/types";
 
 export async function api<T>(

@@ -25,6 +25,13 @@ export type Summary = {
 	accounts: AccountSpend[];
 };
 
+export type TrendRow = {
+	month: string;
+	category_id: number;
+	type: "expense" | "income";
+	total: number;
+};
+
 export type Insights = {
 	history_months: number;
 	above_usual: { id: number; name: string; actual: number; usual: number }[];

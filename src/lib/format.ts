@@ -7,6 +7,15 @@ const money = new Intl.NumberFormat("en-IN", {
 
 export const formatMoney = (paise: number) => money.format(paise / 100);
 
+const compact = new Intl.NumberFormat("en-IN", {
+	style: "currency",
+	currency: "INR",
+	notation: "compact",
+	maximumFractionDigits: 1,
+});
+
+export const formatCompact = (paise: number) => compact.format(paise / 100);
+
 export function formatDay(date: string) {
 	const [y, m, d] = date.split("-").map(Number);
 	return new Date(y, m - 1, d).toLocaleDateString("en-IN", {
