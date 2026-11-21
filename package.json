@@ -5,10 +5,12 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "vite build",
-		"cf-typegen": "wrangler types",
+		"cf-typegen": "wrangler types --strict-vars=false",
 		"format": "biome format --write",
 		"check": "biome check && tsc -b",
-		"db:migrate": "wrangler d1 migrations apply ledger --local"
+		"db:migrate": "wrangler d1 migrations apply ledger --local",
+		"db:migrate:remote": "wrangler d1 migrations apply ledger --remote",
+		"deploy": "vite build && wrangler deploy"
 	},
 	"dependencies": {
 		"@base-ui/react": "^1.9.0",
@@ -17,6 +19,7 @@
 		"class-variance-authority": "^0.7.1",
 		"cn": "^0.5.2",
 		"hono": "^4.13.19",
+		"jose": "^6.2.18",
 		"lucide-react": "^1.77.0",
 		"react": "^19.3.1",
 		"react-dom": "^19.3.1",

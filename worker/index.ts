@@ -1,5 +1,6 @@
 import { type Context, Hono } from "hono";
 import { z } from "zod";
+import { requireAccess } from "./access";
 import { isMonth } from "./month";
 import {
 	accountInput,
@@ -34,6 +35,7 @@ const selectRecurring = `SELECT r.id, r.type, r.description, r.amount, r.day,
 
 const app = new Hono<{ Bindings: Env }>()
 	.basePath("/api")
+	.use(requireAccess)
 	.get("/health", (c) => c.json({ ok: true }))
 	.get("/accounts", async (c) => {
 		const { results } = await c.env.DB.prepare(
