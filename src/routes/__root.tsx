@@ -30,8 +30,8 @@ export const Route = createRootRoute({
 
 function RootLayout() {
 	return (
-		<div className="min-h-svh pb-16 sm:pb-0">
-			<nav className="fixed inset-x-0 bottom-0 z-10 border-t bg-background sm:static sm:border-t-0 sm:border-b">
+		<div className="min-h-svh pt-[env(safe-area-inset-top)] pb-[calc(4rem+env(safe-area-inset-bottom))] sm:pb-0">
+			<nav className="fixed inset-x-0 bottom-0 z-10 border-t bg-background pb-[env(safe-area-inset-bottom)] sm:static sm:border-t-0 sm:border-b sm:pb-0">
 				<div className="mx-auto flex max-w-5xl sm:gap-1 sm:px-4">
 					<span className="hidden items-center pr-4 font-semibold sm:flex">
 						Ledger

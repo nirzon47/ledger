@@ -19,7 +19,7 @@ export function AddTransaction() {
 				aria-label="Add transaction"
 				className={cn(
 					buttonVariants({ size: "icon-lg" }),
-					"fixed right-4 bottom-20 z-20 size-14 shadow-lg sm:bottom-6",
+					"fixed right-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-20 size-14 shadow-lg sm:bottom-6",
 				)}
 			>
 				<PlusIcon className="size-6" />
