@@ -1,7 +1,8 @@
 import { type Context, Hono } from "hono";
 import { z } from "zod";
 import { requireAccess } from "./access";
-import { aiResponse, cachedSummary, monthFacts, trendsFacts } from "./ai";
+import { aiResponse, cachedSummary } from "./ai";
+import { monthFacts, trendsFacts } from "./ai-facts";
 import { getInsights, getSummary, getTrendRows } from "./data";
 import { isMonth } from "./month";
 import {
@@ -134,13 +135,7 @@ const app = new Hono<{ Bindings: Env }>()
 		const month = c.req.query("month");
 		if (!isMonth(month)) return c.json({ error: "month must be YYYY-MM" }, 400);
 		return aiResponse(c, () =>
-			cachedSummary(c.env, "month", month, async () =>
-				monthFacts(
-					month,
-					await getSummary(c.env.DB, month),
-					await getInsights(c.env.DB, month),
-				),
-			),
+			cachedSummary(c.env, "month", month, () => monthFacts(c.env.DB, month)),
 		);
 	})
 	.get("/ai/trends", async (c) => {
@@ -150,15 +145,9 @@ const app = new Hono<{ Bindings: Env }>()
 			return c.json({ error: "from and to must be YYYY-MM" }, 400);
 		}
 		return aiResponse(c, () =>
-			cachedSummary(c.env, "trends", `${from}..${to}`, async () => {
-				const [rows, categories] = await Promise.all([
-					getTrendRows(c.env.DB, from, to),
-					c.env.DB.prepare(
-						"SELECT id, name, type FROM categories",
-					).all<Category>(),
-				]);
-				return trendsFacts(from, to, rows, categories.results);
-			}),
+			cachedSummary(c.env, "trends", `${from}..${to}`, () =>
+				trendsFacts(c.env.DB, from, to),
+			),
 		);
 	})
 	.put("/budgets", async (c) => {
