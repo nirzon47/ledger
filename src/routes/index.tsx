@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { BudgetForm } from "@/components/budget-form";
+import { DueRecurring } from "@/components/due-recurring";
 import { MonthSwitcher } from "@/components/month-switcher";
 import {
 	Card,
@@ -15,23 +16,38 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { api, type CategoryTotal, type Summary } from "@/lib/api";
+import {
+	api,
+	type CategoryTotal,
+	type Recurring,
+	type Summary,
+} from "@/lib/api";
 import { formatMoney } from "@/lib/format";
-import { defaultMonth, monthLabel, validateMonthSearch } from "@/lib/month";
+import {
+	defaultMonth,
+	monthLabel,
+	toMonth,
+	validateMonthSearch,
+} from "@/lib/month";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
 	validateSearch: validateMonthSearch,
 	loaderDeps: ({ search }) => ({ month: search.month ?? defaultMonth() }),
-	loader: async ({ deps }) => ({
-		month: deps.month,
-		summary: await api<Summary>(`/summary?month=${deps.month}`),
-	}),
+	loader: async ({ deps: { month } }) => {
+		const [summary, due] = await Promise.all([
+			api<Summary>(`/summary?month=${month}`),
+			month >= toMonth(new Date())
+				? api<Recurring[]>(`/recurring/due?month=${month}`)
+				: [],
+		]);
+		return { month, summary, due };
+	},
 	component: MonthPage,
 });
 
 function MonthPage() {
-	const { month, summary } = Route.useLoaderData();
+	const { month, summary, due } = Route.useLoaderData();
 	const [planning, setPlanning] = useState<CategoryTotal | null>(null);
 	const left = summary.income - summary.expenses;
 	return (
@@ -59,6 +75,7 @@ function MonthPage() {
 					signed
 				/>
 			</div>
+			<DueRecurring month={month} items={due} />
 			<div className="grid gap-4 lg:grid-cols-2">
 				{(["expense", "income"] as const).map((type) => (
 					<CategoryCard

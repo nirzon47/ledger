@@ -22,25 +22,28 @@ import { useSave } from "@/lib/use-save";
 
 type Type = TransactionInput["type"];
 
-type Props = { initial?: Transaction; onSaved: () => void };
+type Props = {
+	initial?: Transaction;
+	preset?: TransactionInput;
+	onSaved: () => void;
+};
 
-export function TransactionForm({ initial, onSaved }: Props) {
+export function TransactionForm({ initial, preset, onSaved }: Props) {
 	const { accounts, suggestions } = useLoaderData({ from: "__root__" });
 	const { run, saving, error } = useSave(onSaved);
-	const [type, setType] = useState<Type>(initial?.type ?? "expense");
-	const [amount, setAmount] = useState(
-		initial ? String(initial.amount / 100) : "",
-	);
-	const [date, setDate] = useState(initial?.date ?? today);
-	const [description, setDescription] = useState(initial?.description ?? "");
+	const from = initial ?? preset;
+	const [type, setType] = useState<Type>(from?.type ?? "expense");
+	const [amount, setAmount] = useState(from ? String(from.amount / 100) : "");
+	const [date, setDate] = useState(from?.date ?? today);
+	const [description, setDescription] = useState(from?.description ?? "");
 	const [categoryId, setCategoryId] = useState(
-		initial ? String(initial.category_id) : "",
+		from ? String(from.category_id) : "",
 	);
 	const [accountId, setAccountId] = useState(
-		initial?.account_id ? String(initial.account_id) : "",
+		from?.account_id ? String(from.account_id) : "",
 	);
 	const [monthOverride, setMonthOverride] = useState(
-		initial?.budget_month ?? null,
+		from?.budget_month ?? null,
 	);
 	const account = accounts.find((a) => String(a.id) === accountId);
 	const budgetMonth = monthOverride ?? budgetMonthFor(date || today(), account);
@@ -67,6 +70,7 @@ export function TransactionForm({ initial, onSaved }: Props) {
 			description,
 			category_id: Number(categoryId),
 			account_id: accountId ? Number(accountId) : null,
+			recurring_id: preset?.recurring_id ?? null,
 		};
 		run(() =>
 			initial

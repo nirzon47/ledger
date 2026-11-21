@@ -16,6 +16,14 @@ export function today() {
 	return `${toMonth(now)}-${String(now.getDate()).padStart(2, "0")}`;
 }
 
+export function recurringDate(month: string, day: number, account?: Account) {
+	const start = account?.cycle_start_day;
+	const target = start && day >= start ? shiftMonth(month, -1) : month;
+	const [y, m] = target.split("-").map(Number);
+	const lastDay = new Date(y, m, 0).getDate();
+	return `${target}-${String(Math.min(day, lastDay)).padStart(2, "0")}`;
+}
+
 export function budgetMonthFor(date: string, account?: Account) {
 	const month = date.slice(0, 7);
 	const start = account?.cycle_start_day;

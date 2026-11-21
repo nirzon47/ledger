@@ -23,6 +23,12 @@ import type {
 
 type Ctx = Context<{ Bindings: Env }>;
 
+const selectRecurring = `SELECT r.id, r.type, r.description, r.amount, r.day,
+		r.category_id, c.name AS category, r.account_id, a.name AS account
+	FROM recurring r
+	JOIN categories c ON c.id = r.category_id
+	LEFT JOIN accounts a ON a.id = r.account_id`;
+
 const app = new Hono<{ Bindings: Env }>()
 	.basePath("/api")
 	.get("/health", (c) => c.json({ ok: true }))
@@ -178,10 +184,11 @@ const app = new Hono<{ Bindings: Env }>()
 		if ("error" in input) return c.json(input, 400);
 		const row = await c.env.DB.prepare(
 			`INSERT INTO transactions
-				(type, date, budget_month, amount, description, category_id, account_id)
-			VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id`,
+				(type, date, budget_month, amount, description, category_id, account_id,
+					recurring_id)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
 		)
-			.bind(...columns(input.data))
+			.bind(...columns(input.data), input.data.recurring_id)
 			.first<{ id: number }>();
 		return c.json(row, 201);
 	})
@@ -202,13 +209,23 @@ const app = new Hono<{ Bindings: Env }>()
 	)
 	.get("/recurring", async (c) => {
 		const { results } = await c.env.DB.prepare(
-			`SELECT r.id, r.type, r.description, r.amount, r.day,
-				r.category_id, c.name AS category, r.account_id, a.name AS account
-			FROM recurring r
-			JOIN categories c ON c.id = r.category_id
-			LEFT JOIN accounts a ON a.id = r.account_id
-			ORDER BY r.day, r.description`,
+			`${selectRecurring} ORDER BY r.day, r.description`,
 		).all<Recurring>();
+		return c.json(results);
+	})
+	.get("/recurring/due", async (c) => {
+		const month = c.req.query("month");
+		if (!isMonth(month)) return c.json({ error: "month must be YYYY-MM" }, 400);
+		const { results } = await c.env.DB.prepare(
+			`${selectRecurring}
+			WHERE NOT EXISTS (
+				SELECT 1 FROM transactions t
+				WHERE t.recurring_id = r.id AND t.budget_month = ?
+			)
+			ORDER BY r.day, r.description`,
+		)
+			.bind(month)
+			.all<Recurring>();
 		return c.json(results);
 	})
 	.post("/recurring", async (c) => {
