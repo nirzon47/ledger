@@ -3,11 +3,17 @@
 	"name": "ledger",
 	"main": "worker/index.ts",
 	"compatibility_date": "2026-11-19",
-	"d1_databases": [{ "binding": "DB", "database_name": "ledger" }],
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "ledger",
+			"database_id": "3c85ff01-b80c-4597-b62c-1cbc777249cd"
+		}
+	],
+	"routes": [{ "pattern": "ledger.nirzonkarmakar.com", "custom_domain": true }],
 	"vars": {
-		// e.g. https://<team>.cloudflareaccess.com
-		"ACCESS_TEAM_DOMAIN": "",
-		"ACCESS_AUD": ""
+		"ACCESS_TEAM_DOMAIN": "https://small-limit-cb01.cloudflareaccess.com",
+		"ACCESS_AUD": "f4332ef4af44857c056eb19d72101393fa9c04f03f05829c67e223be7d52da15"
 	},
 	"workers_dev": false,
 	"preview_urls": false,
