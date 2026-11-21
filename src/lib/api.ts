@@ -3,19 +3,19 @@ export type { Account, Category, Transaction } from "../../worker/types";
 
 export async function api<T>(
 	path: string,
-	init?: { method: string; body: unknown },
+	init?: { method: string; body?: unknown },
 ): Promise<T> {
 	const res = await fetch(
 		`/api${path}`,
 		init && {
 			method: init.method,
 			headers: { "content-type": "application/json" },
-			body: JSON.stringify(init.body),
+			body: init.body === undefined ? undefined : JSON.stringify(init.body),
 		},
 	);
 	if (!res.ok) {
 		const data = await res.json().catch(() => null);
 		throw new Error(data?.error ?? `${res.status} ${res.statusText}`);
 	}
-	return res.json();
+	return res.status === 204 ? (undefined as T) : res.json();
 }

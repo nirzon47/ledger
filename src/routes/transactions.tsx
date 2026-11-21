@@ -1,5 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { MonthSwitcher } from "@/components/month-switcher";
+import { TransactionForm } from "@/components/transaction-form";
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import {
 	Table,
 	TableBody,
@@ -26,6 +34,7 @@ export const Route = createFileRoute("/transactions")({
 
 function Transactions() {
 	const { month, transactions } = Route.useLoaderData();
+	const [editing, setEditing] = useState<Transaction | null>(null);
 	return (
 		<div className="space-y-4">
 			<div className="flex flex-wrap items-center justify-between gap-2">
@@ -49,12 +58,18 @@ function Transactions() {
 					</TableHeader>
 					<TableBody>
 						{transactions.map((t) => (
-							<TableRow key={t.id}>
+							<TableRow key={t.id} className="relative cursor-pointer">
 								<TableCell className="text-muted-foreground">
 									{formatDay(t.date)}
 								</TableCell>
 								<TableCell>
-									{t.description}
+									<button
+										type="button"
+										onClick={() => setEditing(t)}
+										className="text-left after:absolute after:inset-0"
+									>
+										{t.description}
+									</button>
 									<span className="block text-xs text-muted-foreground sm:hidden">
 										{[t.category, t.account].filter(Boolean).join(" · ")}
 									</span>
@@ -79,6 +94,23 @@ function Transactions() {
 					</TableBody>
 				</Table>
 			)}
+			<Dialog
+				open={editing !== null}
+				onOpenChange={(open) => !open && setEditing(null)}
+			>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Edit transaction</DialogTitle>
+					</DialogHeader>
+					{editing && (
+						<TransactionForm
+							key={editing.id}
+							initial={editing}
+							onSaved={() => setEditing(null)}
+						/>
+					)}
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }

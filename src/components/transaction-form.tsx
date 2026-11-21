@@ -15,44 +15,42 @@ import {
 	NativeSelectOptGroup,
 	NativeSelectOption,
 } from "@/components/ui/native-select";
-import { api, type TransactionInput } from "@/lib/api";
+import { api, type Transaction, type TransactionInput } from "@/lib/api";
 import { budgetMonthFor, monthLabel, shiftMonth, today } from "@/lib/month";
 
 type Type = TransactionInput["type"];
 
-export function TransactionForm({ onSaved }: { onSaved: () => void }) {
+type Props = { initial?: Transaction; onSaved: () => void };
+
+export function TransactionForm({ initial, onSaved }: Props) {
 	const { accounts, categories } = useLoaderData({ from: "__root__" });
 	const router = useRouter();
-	const [type, setType] = useState<Type>("expense");
-	const [amount, setAmount] = useState("");
-	const [date, setDate] = useState(today);
-	const [description, setDescription] = useState("");
-	const [categoryId, setCategoryId] = useState("");
-	const [accountId, setAccountId] = useState("");
-	const [monthOverride, setMonthOverride] = useState<string | null>(null);
+	const [type, setType] = useState<Type>(initial?.type ?? "expense");
+	const [amount, setAmount] = useState(
+		initial ? String(initial.amount / 100) : "",
+	);
+	const [date, setDate] = useState(initial?.date ?? today);
+	const [description, setDescription] = useState(initial?.description ?? "");
+	const [categoryId, setCategoryId] = useState(
+		initial ? String(initial.category_id) : "",
+	);
+	const [accountId, setAccountId] = useState(
+		initial?.account_id ? String(initial.account_id) : "",
+	);
+	const [monthOverride, setMonthOverride] = useState(
+		initial?.budget_month ?? null,
+	);
 	const [error, setError] = useState<string | null>(null);
 	const [saving, setSaving] = useState(false);
 
 	const account = accounts.find((a) => String(a.id) === accountId);
 	const budgetMonth = monthOverride ?? budgetMonthFor(date || today(), account);
 
-	async function submit(event: FormEvent) {
-		event.preventDefault();
+	async function run(action: () => Promise<unknown>) {
 		setSaving(true);
 		setError(null);
 		try {
-			await api("/transactions", {
-				method: "POST",
-				body: {
-					type,
-					date,
-					budget_month: budgetMonth,
-					amount: Math.round(Number(amount) * 100),
-					description,
-					category_id: Number(categoryId),
-					account_id: accountId ? Number(accountId) : null,
-				} satisfies TransactionInput,
-			});
+			await action();
 			await router.invalidate();
 			onSaved();
 		} catch (err) {
@@ -60,6 +58,29 @@ export function TransactionForm({ onSaved }: { onSaved: () => void }) {
 		} finally {
 			setSaving(false);
 		}
+	}
+
+	function submit(event: FormEvent) {
+		event.preventDefault();
+		const body: TransactionInput = {
+			type,
+			date,
+			budget_month: budgetMonth,
+			amount: Math.round(Number(amount) * 100),
+			description,
+			category_id: Number(categoryId),
+			account_id: accountId ? Number(accountId) : null,
+		};
+		run(() =>
+			initial
+				? api(`/transactions/${initial.id}`, { method: "PUT", body })
+				: api("/transactions", { method: "POST", body }),
+		);
+	}
+
+	function remove() {
+		if (!initial || !confirm(`Delete "${initial.description}"?`)) return;
+		run(() => api(`/transactions/${initial.id}`, { method: "DELETE" }));
 	}
 
 	return (
@@ -190,9 +211,22 @@ export function TransactionForm({ onSaved }: { onSaved: () => void }) {
 					</div>
 				</Field>
 				{error && <FieldError>{error}</FieldError>}
-				<Button type="submit" size="lg" disabled={saving}>
-					{saving ? "Saving…" : "Save"}
-				</Button>
+				<div className="flex gap-2">
+					{initial && (
+						<Button
+							type="button"
+							variant="destructive"
+							size="lg"
+							disabled={saving}
+							onClick={remove}
+						>
+							Delete
+						</Button>
+					)}
+					<Button type="submit" size="lg" className="flex-1" disabled={saving}>
+						{saving ? "Saving…" : "Save"}
+					</Button>
+				</div>
 			</FieldGroup>
 		</form>
 	);
