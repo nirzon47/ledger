@@ -1,6 +1,7 @@
 import { useLoaderData } from "@tanstack/react-router";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { type FormEvent, useState } from "react";
+import { DescriptionInput } from "@/components/description-input";
 import {
 	CategoryAccountFields,
 	FormActions,
@@ -121,20 +122,12 @@ export function TransactionForm({ initial, preset, onSaved }: Props) {
 				</div>
 				<Field>
 					<FieldLabel htmlFor="description">Description</FieldLabel>
-					<Input
+					<DescriptionInput
 						id="description"
-						list="description-suggestions"
-						autoComplete="off"
-						required
-						maxLength={200}
 						value={description}
-						onChange={(e) => changeDescription(e.target.value)}
+						suggestions={typeSuggestions.map((s) => s.description)}
+						onChange={changeDescription}
 					/>
-					<datalist id="description-suggestions">
-						{typeSuggestions.map((s) => (
-							<option key={s.description} value={s.description} />
-						))}
-					</datalist>
 				</Field>
 				<CategoryAccountFields
 					type={type}
