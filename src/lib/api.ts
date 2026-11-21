@@ -1,5 +1,6 @@
 export type {
 	AccountInput,
+	BudgetInput,
 	CategoryInput,
 	TransactionInput,
 } from "../../worker/schemas";

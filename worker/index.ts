@@ -3,6 +3,7 @@ import { z } from "zod";
 import { isMonth } from "./month";
 import {
 	accountInput,
+	budgetInput,
 	categoryInput,
 	categoryRename,
 	type TransactionInput,
@@ -112,25 +113,46 @@ const app = new Hono<{ Bindings: Env }>()
 				.bind(month)
 				.first<{ balance: number }>(),
 			c.env.DB.prepare(
-				`SELECT c.id, c.name, c.type, COALESCE(SUM(t.amount), 0) AS actual
+				`SELECT c.id, c.name, c.type,
+					COALESCE((
+						SELECT b.planned FROM budgets b
+						WHERE b.category_id = c.id AND b.month <= ?1
+						ORDER BY b.month DESC LIMIT 1
+					), 0) AS planned,
+					COALESCE((
+						SELECT SUM(t.amount) FROM transactions t
+						WHERE t.category_id = c.id AND t.budget_month = ?1
+					), 0) AS actual
 				FROM categories c
-				LEFT JOIN transactions t ON t.category_id = c.id AND t.budget_month = ?
-				GROUP BY c.id
 				ORDER BY c.id`,
 			)
 				.bind(month)
 				.all<CategoryTotal>(),
 		]);
-		const total = (type: Category["type"]) =>
+		const total = (type: Category["type"], key: "planned" | "actual") =>
 			totals.results
 				.filter((r) => r.type === type)
-				.reduce((sum, r) => sum + r.actual, 0);
+				.reduce((sum, r) => sum + r[key], 0);
 		return c.json({
 			start_balance: start?.balance ?? 0,
-			income: total("income"),
-			expenses: total("expense"),
+			income: total("income", "actual"),
+			expenses: total("expense", "actual"),
+			planned_income: total("income", "planned"),
+			planned_expenses: total("expense", "planned"),
 			categories: totals.results,
 		} satisfies Summary);
+	})
+	.put("/budgets", async (c) => {
+		const input = await parseBody(c, budgetInput);
+		if ("error" in input) return c.json(input, 400);
+		const b = input.data;
+		await c.env.DB.prepare(
+			`INSERT INTO budgets (month, category_id, planned) VALUES (?, ?, ?)
+			ON CONFLICT (month, category_id) DO UPDATE SET planned = excluded.planned`,
+		)
+			.bind(b.month, b.category_id, b.planned)
+			.run();
+		return c.body(null, 204);
 	})
 	.get("/suggestions", async (c) => {
 		const { results } = await c.env.DB.prepare(
@@ -230,10 +252,15 @@ async function removeUnused(
 	if (used?.n) {
 		return c.json({ error: `Used by ${used.n} transaction(s)` }, 409);
 	}
-	const { meta } = await c.env.DB.prepare(`DELETE FROM ${table} WHERE id = ?`)
-		.bind(id)
-		.run();
-	return meta.changes ? c.body(null, 204) : c.json({ error: "Not found" }, 404);
+	const results = await c.env.DB.batch([
+		...(table === "categories"
+			? [c.env.DB.prepare("DELETE FROM budgets WHERE category_id = ?").bind(id)]
+			: []),
+		c.env.DB.prepare(`DELETE FROM ${table} WHERE id = ?`).bind(id),
+	]);
+	return results.at(-1)?.meta.changes
+		? c.body(null, 204)
+		: c.json({ error: "Not found" }, 404);
 }
 
 const columns = (t: TransactionInput) => [

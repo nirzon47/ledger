@@ -34,3 +34,11 @@ export const categoryInput = z.object({
 export const categoryRename = categoryInput.pick({ name: true });
 
 export type CategoryInput = z.infer<typeof categoryInput>;
+
+export const budgetInput = z.object({
+	month: z.string().refine(isMonth, "Must be YYYY-MM"),
+	category_id: z.number().int(),
+	planned: z.number().int().min(0),
+});
+
+export type BudgetInput = z.infer<typeof budgetInput>;

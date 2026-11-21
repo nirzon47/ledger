@@ -11,12 +11,14 @@ export type Category = {
 	type: "expense" | "income";
 };
 
-export type CategoryTotal = Category & { actual: number };
+export type CategoryTotal = Category & { planned: number; actual: number };
 
 export type Summary = {
 	start_balance: number;
 	income: number;
 	expenses: number;
+	planned_income: number;
+	planned_expenses: number;
 	categories: CategoryTotal[];
 };
 
