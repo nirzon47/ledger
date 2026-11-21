@@ -11,6 +11,7 @@ import {
 	type Category,
 	type Goal,
 	type Insights,
+	type PlanRow,
 	type Recurring,
 	type Suggestion,
 	type Summary,
@@ -46,6 +47,10 @@ export const queries = {
 	balanceHistory: queryOptions({
 		queryKey: ["balances", "history"],
 		queryFn: () => api<Balance[]>("/balances/history"),
+	}),
+	plan: queryOptions({
+		queryKey: ["plan"],
+		queryFn: () => api<PlanRow[]>("/plan"),
 	}),
 	goals: queryOptions({
 		queryKey: ["goals"],
@@ -127,6 +132,7 @@ export function preloadApp() {
 		queryClient.prefetchQuery(queries.balances),
 		queryClient.prefetchQuery(queries.balanceHistory),
 		queryClient.prefetchQuery(queries.goals),
+		queryClient.prefetchQuery(queries.plan),
 		queryClient.prefetchQuery(queries.transactions(month)),
 		queryClient.prefetchQuery(queries.trends(months[0], month)),
 		queryClient.prefetchQuery(queries.aiTrends(months[0], month)),

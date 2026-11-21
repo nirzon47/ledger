@@ -22,6 +22,7 @@ import type {
 	Balance,
 	Category,
 	Goal,
+	PlanRow,
 	Recurring,
 	Suggestion,
 	Transaction,
@@ -153,6 +154,19 @@ const app = new Hono<{ Bindings: Env }>()
 				trendsFacts(c.env.DB, from, to),
 			),
 		);
+	})
+	.get("/plan", async (c) => {
+		const { results } = await c.env.DB.prepare(
+			`SELECT p.month, p.savings, p.capex, p.loan, p.corpus, p.note,
+				(
+					SELECT COALESCE(SUM(t.amount), 0) FROM transactions t
+					JOIN categories c ON c.id = t.category_id
+					WHERE t.budget_month = p.month AND t.type = 'expense'
+						AND c.name = 'Savings / Investments'
+				) AS saved
+			FROM plan p ORDER BY p.month`,
+		).all<PlanRow>();
+		return c.json(results);
 	})
 	.get("/goals", async (c) => {
 		const { results } = await c.env.DB.prepare(

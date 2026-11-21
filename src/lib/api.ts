@@ -15,6 +15,7 @@ export type {
 	CategoryTotal,
 	Goal,
 	Insights,
+	PlanRow,
 	Recurring,
 	Suggestion,
 	Summary,

@@ -26,6 +26,16 @@ export type Summary = {
 
 export type AiSummary = { content: string; generated_at: string };
 
+export type PlanRow = {
+	month: string;
+	savings: number;
+	capex: number;
+	loan: number;
+	corpus: number | null;
+	note: string;
+	saved: number;
+};
+
 export type Goal = {
 	id: number;
 	name: string;
