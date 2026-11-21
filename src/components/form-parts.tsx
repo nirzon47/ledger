@@ -1,4 +1,3 @@
-import { useLoaderData } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
 import {
@@ -7,6 +6,7 @@ import {
 	NativeSelectOption,
 } from "@/components/ui/native-select";
 import type { Category } from "@/lib/api";
+import { useLists } from "@/lib/queries";
 
 export const transactionTypes = [
 	{ value: "expense", label: "Expense" },
@@ -79,7 +79,7 @@ export function CategoryAccountFields({
 	onCategory,
 	onAccount,
 }: CategoryAccountProps) {
-	const { accounts, categories } = useLoaderData({ from: "__root__" });
+	const { accounts, categories } = useLists();
 	return (
 		<div className="grid grid-cols-2 gap-3">
 			<Field>

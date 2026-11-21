@@ -1,9 +1,9 @@
-import { useRouter } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { haptic } from "./haptics";
 
 export function useSave(onDone: () => void) {
-	const router = useRouter();
+	const queryClient = useQueryClient();
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
@@ -13,7 +13,7 @@ export function useSave(onDone: () => void) {
 		try {
 			await action();
 			haptic("success");
-			await router.invalidate();
+			await queryClient.invalidateQueries();
 			onDone();
 		} catch (err) {
 			haptic("warning");

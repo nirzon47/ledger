@@ -1,4 +1,5 @@
-import { createFileRoute, useLoaderData } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { AccountForm } from "@/components/account-form";
@@ -19,16 +20,18 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { type Account, api, type Category, type Recurring } from "@/lib/api";
+import type { Account, Category } from "@/lib/api";
+import { queries, useLists } from "@/lib/queries";
 
 export const Route = createFileRoute("/settings")({
-	loader: () => api<Recurring[]>("/recurring"),
+	loader: ({ context: { queryClient } }) =>
+		queryClient.ensureQueryData(queries.recurring),
 	component: Settings,
 });
 
 function Settings() {
-	const { accounts, categories } = useLoaderData({ from: "__root__" });
-	const recurring = Route.useLoaderData();
+	const { accounts, categories } = useLists();
+	const { data: recurring } = useSuspenseQuery(queries.recurring);
 	const [account, setAccount] = useState<Account | "new" | null>(null);
 	const [category, setCategory] = useState<{
 		type: Category["type"];

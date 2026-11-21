@@ -1,4 +1,9 @@
-import { createRootRoute, Link, Outlet } from "@tanstack/react-router";
+import type { QueryClient } from "@tanstack/react-query";
+import {
+	createRootRouteWithContext,
+	Link,
+	Outlet,
+} from "@tanstack/react-router";
 import {
 	CalendarDaysIcon,
 	ChartLineIcon,
@@ -6,7 +11,7 @@ import {
 	SettingsIcon,
 } from "lucide-react";
 import { AddTransaction } from "@/components/add-transaction";
-import { type Account, api, type Category, type Suggestion } from "@/lib/api";
+import { queries } from "@/lib/queries";
 
 const links = [
 	{ to: "/", label: "Month", icon: CalendarDaysIcon },
@@ -15,18 +20,17 @@ const links = [
 	{ to: "/settings", label: "Settings", icon: SettingsIcon },
 ] as const;
 
-export const Route = createRootRoute({
-	loader: async () => {
-		const [accounts, categories, suggestions] = await Promise.all([
-			api<Account[]>("/accounts"),
-			api<Category[]>("/categories"),
-			api<Suggestion[]>("/suggestions"),
-		]);
-		return { accounts, categories, suggestions };
+export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
+	{
+		loader: ({ context: { queryClient } }) =>
+			Promise.all([
+				queryClient.ensureQueryData(queries.accounts),
+				queryClient.ensureQueryData(queries.categories),
+				queryClient.ensureQueryData(queries.suggestions),
+			]),
+		component: RootLayout,
 	},
-	staleTime: Number.POSITIVE_INFINITY,
-	component: RootLayout,
-});
+);
 
 function RootLayout() {
 	return (

@@ -1,4 +1,3 @@
-import { useLoaderData } from "@tanstack/react-router";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { DescriptionInput } from "@/components/description-input";
@@ -20,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { api, type Transaction, type TransactionInput } from "@/lib/api";
 import { confirmWithHaptic } from "@/lib/haptics";
 import { budgetMonthFor, monthLabel, shiftMonth, today } from "@/lib/month";
+import { useLists } from "@/lib/queries";
 import { useSave } from "@/lib/use-save";
 
 type Type = TransactionInput["type"];
@@ -31,7 +31,7 @@ type Props = {
 };
 
 export function TransactionForm({ initial, preset, onSaved }: Props) {
-	const { accounts, suggestions } = useLoaderData({ from: "__root__" });
+	const { accounts, suggestions } = useLists();
 	const { run, saving, error } = useSave(onSaved);
 	const from = initial ?? preset;
 	const [type, setType] = useState<Type>(from?.type ?? "expense");

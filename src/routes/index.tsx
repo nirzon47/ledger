@@ -1,3 +1,4 @@
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { BudgetForm } from "@/components/budget-form";
@@ -18,40 +19,29 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import {
-	api,
-	type CategoryTotal,
-	type Insights,
-	type Recurring,
-	type Summary,
-} from "@/lib/api";
+import type { CategoryTotal } from "@/lib/api";
 import { formatMoney } from "@/lib/format";
-import {
-	defaultMonth,
-	monthLabel,
-	toMonth,
-	validateMonthSearch,
-} from "@/lib/month";
+import { defaultMonth, monthLabel, validateMonthSearch } from "@/lib/month";
+import { queries } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
 	validateSearch: validateMonthSearch,
 	loaderDeps: ({ search }) => ({ month: search.month ?? defaultMonth() }),
-	loader: async ({ deps: { month } }) => {
-		const [summary, due, insights] = await Promise.all([
-			api<Summary>(`/summary?month=${month}`),
-			month >= toMonth(new Date())
-				? api<Recurring[]>(`/recurring/due?month=${month}`)
-				: [],
-			api<Insights>(`/insights?month=${month}`),
-		]);
-		return { month, summary, due, insights };
-	},
+	loader: ({ context: { queryClient }, deps: { month } }) =>
+		Promise.all([
+			queryClient.ensureQueryData(queries.summary(month)),
+			queryClient.ensureQueryData(queries.due(month)),
+			queryClient.ensureQueryData(queries.insights(month)),
+		]),
 	component: MonthPage,
 });
 
 function MonthPage() {
-	const { month, summary, due, insights } = Route.useLoaderData();
+	const { month } = Route.useLoaderDeps();
+	const { data: summary } = useSuspenseQuery(queries.summary(month));
+	const { data: due } = useSuspenseQuery(queries.due(month));
+	const { data: insights } = useSuspenseQuery(queries.insights(month));
 	const [planning, setPlanning] = useState<CategoryTotal | null>(null);
 	const left = summary.income - summary.expenses;
 	return (

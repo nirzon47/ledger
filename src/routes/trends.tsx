@@ -1,4 +1,5 @@
-import { createFileRoute, Link, useLoaderData } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { CategoryHeatmap } from "@/components/category-heatmap";
 import {
 	IncomeSpentChart,
@@ -12,11 +13,20 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { api, type TrendRow } from "@/lib/api";
+import type { TrendRow } from "@/lib/api";
 import { formatMoney } from "@/lib/format";
 import { defaultMonth, monthLabel, monthsEnding } from "@/lib/month";
+import { queries, useLists } from "@/lib/queries";
 
 const ranges = [6, 12, 24];
+
+function trendWindow(range: number) {
+	const months = monthsEnding(defaultMonth(), range);
+	return {
+		months,
+		query: queries.trends(months[0], months[months.length - 1]),
+	};
+}
 
 export const Route = createFileRoute("/trends")({
 	validateSearch: (search: Record<string, unknown>): { range?: number } =>
@@ -24,19 +34,16 @@ export const Route = createFileRoute("/trends")({
 			? { range: Number(search.range) }
 			: {},
 	loaderDeps: ({ search }) => ({ range: search.range ?? 12 }),
-	loader: async ({ deps: { range } }) => {
-		const months = monthsEnding(defaultMonth(), range);
-		const rows = await api<TrendRow[]>(
-			`/trends?from=${months[0]}&to=${months[months.length - 1]}`,
-		);
-		return { range, months, rows };
-	},
+	loader: ({ context: { queryClient }, deps: { range } }) =>
+		queryClient.ensureQueryData(trendWindow(range).query),
 	component: Trends,
 });
 
 function Trends() {
-	const { range, months, rows } = Route.useLoaderData();
-	const { categories } = useLoaderData({ from: "__root__" });
+	const { range } = Route.useLoaderDeps();
+	const { months, query } = trendWindow(range);
+	const { data: rows } = useSuspenseQuery(query);
+	const { categories } = useLists();
 	const totals: MonthTotals[] = months.map((month) => {
 		const sum = (type: TrendRow["type"]) =>
 			rows

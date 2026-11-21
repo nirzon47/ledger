@@ -1,3 +1,4 @@
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { MonthSwitcher } from "@/components/month-switcher";
@@ -16,23 +17,23 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { api, type Transaction } from "@/lib/api";
+import type { Transaction } from "@/lib/api";
 import { formatDay, formatMoney } from "@/lib/format";
 import { defaultMonth, monthLabel, validateMonthSearch } from "@/lib/month";
+import { queries } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/transactions")({
 	validateSearch: validateMonthSearch,
 	loaderDeps: ({ search }) => ({ month: search.month ?? defaultMonth() }),
-	loader: async ({ deps }) => ({
-		month: deps.month,
-		transactions: await api<Transaction[]>(`/transactions?month=${deps.month}`),
-	}),
+	loader: ({ context: { queryClient }, deps: { month } }) =>
+		queryClient.ensureQueryData(queries.transactions(month)),
 	component: Transactions,
 });
 
 function Transactions() {
-	const { month, transactions } = Route.useLoaderData();
+	const { month } = Route.useLoaderDeps();
+	const { data: transactions } = useSuspenseQuery(queries.transactions(month));
 	const [editing, setEditing] = useState<Transaction | null>(null);
 	return (
 		<div className="space-y-4">

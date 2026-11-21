@@ -1,4 +1,3 @@
-import { useLoaderData } from "@tanstack/react-router";
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { TransactionForm } from "@/components/transaction-form";
@@ -19,11 +18,12 @@ import {
 import type { Recurring, TransactionInput } from "@/lib/api";
 import { formatDay, formatMoney } from "@/lib/format";
 import { recurringDate } from "@/lib/month";
+import { useLists } from "@/lib/queries";
 
 type Props = { month: string; items: Recurring[] };
 
 export function DueRecurring({ month, items }: Props) {
-	const { accounts } = useLoaderData({ from: "__root__" });
+	const { accounts } = useLists();
 	const [preset, setPreset] = useState<TransactionInput | null>(null);
 	if (items.length === 0) return null;
 
