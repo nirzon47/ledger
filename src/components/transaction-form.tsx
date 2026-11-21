@@ -23,7 +23,9 @@ type Type = TransactionInput["type"];
 type Props = { initial?: Transaction; onSaved: () => void };
 
 export function TransactionForm({ initial, onSaved }: Props) {
-	const { accounts, categories } = useLoaderData({ from: "__root__" });
+	const { accounts, categories, suggestions } = useLoaderData({
+		from: "__root__",
+	});
 	const router = useRouter();
 	const [type, setType] = useState<Type>(initial?.type ?? "expense");
 	const [amount, setAmount] = useState(
@@ -45,6 +47,18 @@ export function TransactionForm({ initial, onSaved }: Props) {
 
 	const account = accounts.find((a) => String(a.id) === accountId);
 	const budgetMonth = monthOverride ?? budgetMonthFor(date || today(), account);
+	const typeSuggestions = suggestions.filter((s) => s.type === type);
+
+	function changeDescription(value: string) {
+		setDescription(value);
+		const key = value.trim().toLowerCase();
+		const match = typeSuggestions.find(
+			(s) => s.description.toLowerCase() === key,
+		);
+		if (!match) return;
+		setCategoryId(String(match.category_id));
+		setAccountId(match.account_id ? String(match.account_id) : "");
+	}
 
 	async function run(action: () => Promise<unknown>) {
 		setSaving(true);
@@ -130,11 +144,18 @@ export function TransactionForm({ initial, onSaved }: Props) {
 					<FieldLabel htmlFor="description">Description</FieldLabel>
 					<Input
 						id="description"
+						list="description-suggestions"
+						autoComplete="off"
 						required
 						maxLength={200}
 						value={description}
-						onChange={(e) => setDescription(e.target.value)}
+						onChange={(e) => changeDescription(e.target.value)}
 					/>
+					<datalist id="description-suggestions">
+						{typeSuggestions.map((s) => (
+							<option key={s.description} value={s.description} />
+						))}
+					</datalist>
 				</Field>
 				<div className="grid grid-cols-2 gap-3">
 					<Field>

@@ -2,7 +2,7 @@ import { type Context, Hono } from "hono";
 import { z } from "zod";
 import { isMonth } from "./month";
 import { type TransactionInput, transactionInput } from "./schemas";
-import type { Account, Category, Transaction } from "./types";
+import type { Account, Category, Suggestion, Transaction } from "./types";
 
 const app = new Hono<{ Bindings: Env }>()
 	.basePath("/api")
@@ -33,6 +33,22 @@ const app = new Hono<{ Bindings: Env }>()
 		)
 			.bind(month)
 			.all<Transaction>();
+		return c.json(results);
+	})
+	.get("/suggestions", async (c) => {
+		const { results } = await c.env.DB.prepare(
+			`SELECT description, type, category_id, account_id FROM (
+				SELECT description, type, category_id, account_id,
+					ROW_NUMBER() OVER latest AS rn,
+					COUNT(*) OVER (PARTITION BY type, lower(description)) AS uses
+				FROM transactions
+				WINDOW latest AS (
+					PARTITION BY type, lower(description) ORDER BY date DESC, id DESC
+				)
+			)
+			WHERE rn = 1
+			ORDER BY uses DESC, description`,
+		).all<Suggestion>();
 		return c.json(results);
 	})
 	.post("/transactions", async (c) => {

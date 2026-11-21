@@ -11,6 +11,13 @@ export type Category = {
 	type: "expense" | "income";
 };
 
+export type Suggestion = {
+	description: string;
+	type: "expense" | "income";
+	category_id: number;
+	account_id: number | null;
+};
+
 export type Transaction = {
 	id: number;
 	type: "expense" | "income";

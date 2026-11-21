@@ -6,7 +6,7 @@ import {
 	SettingsIcon,
 } from "lucide-react";
 import { AddTransaction } from "@/components/add-transaction";
-import { type Account, api, type Category } from "@/lib/api";
+import { type Account, api, type Category, type Suggestion } from "@/lib/api";
 
 const links = [
 	{ to: "/", label: "Month", icon: CalendarDaysIcon },
@@ -17,11 +17,12 @@ const links = [
 
 export const Route = createRootRoute({
 	loader: async () => {
-		const [accounts, categories] = await Promise.all([
+		const [accounts, categories, suggestions] = await Promise.all([
 			api<Account[]>("/accounts"),
 			api<Category[]>("/categories"),
+			api<Suggestion[]>("/suggestions"),
 		]);
-		return { accounts, categories };
+		return { accounts, categories, suggestions };
 	},
 	staleTime: Number.POSITIVE_INFINITY,
 	component: RootLayout,

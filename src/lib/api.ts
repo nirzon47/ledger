@@ -1,5 +1,10 @@
 export type { TransactionInput } from "../../worker/schemas";
-export type { Account, Category, Transaction } from "../../worker/types";
+export type {
+	Account,
+	Category,
+	Suggestion,
+	Transaction,
+} from "../../worker/types";
 
 export async function api<T>(
 	path: string,
