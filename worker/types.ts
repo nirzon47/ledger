@@ -24,6 +24,8 @@ export type Summary = {
 	accounts: AccountSpend[];
 };
 
+export type AiSummary = { content: string; generated_at: string };
+
 export type TrendRow = {
 	month: string;
 	category_id: number;
