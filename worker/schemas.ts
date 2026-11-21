@@ -5,7 +5,10 @@ export const transactionInput = z.object({
 	type: z.enum(["expense", "income"]),
 	date: z.iso.date(),
 	budget_month: z.string().refine(isMonth, "Must be YYYY-MM"),
-	amount: z.number().int().positive(),
+	amount: z
+		.number()
+		.int()
+		.refine((n) => n !== 0, "Amount can't be zero"),
 	description: z.string().trim().min(1).max(200),
 	category_id: z.number().int(),
 	account_id: z.number().int().nullable(),
@@ -44,7 +47,10 @@ export const recurringInput = transactionInput
 		category_id: true,
 		account_id: true,
 	})
-	.extend({ day: z.number().int().min(1).max(31) });
+	.extend({
+		amount: z.number().int().positive(),
+		day: z.number().int().min(1).max(31),
+	});
 
 export type RecurringInput = z.infer<typeof recurringInput>;
 

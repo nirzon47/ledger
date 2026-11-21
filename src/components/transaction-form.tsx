@@ -103,7 +103,6 @@ export function TransactionForm({ initial, preset, onSaved }: Props) {
 							type="number"
 							inputMode="decimal"
 							step="0.01"
-							min="0.01"
 							required
 							value={amount}
 							onChange={(e) => setAmount(e.target.value)}

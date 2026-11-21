@@ -16,7 +16,6 @@ export type CategoryTotal = Category & { planned: number; actual: number };
 export type AccountSpend = { id: number | null; name: string; actual: number };
 
 export type Summary = {
-	start_balance: number;
 	income: number;
 	expenses: number;
 	planned_income: number;

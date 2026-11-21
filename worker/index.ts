@@ -118,14 +118,7 @@ const app = new Hono<{ Bindings: Env }>()
 	.get("/summary", async (c) => {
 		const month = c.req.query("month");
 		if (!isMonth(month)) return c.json({ error: "month must be YYYY-MM" }, 400);
-		const [start, totals, accounts] = await Promise.all([
-			c.env.DB.prepare(
-				`SELECT COALESCE(SUM(CASE type WHEN 'income' THEN amount ELSE -amount END), 0)
-					AS balance
-				FROM transactions WHERE budget_month < ?`,
-			)
-				.bind(month)
-				.first<{ balance: number }>(),
+		const [totals, accounts] = await Promise.all([
 			c.env.DB.prepare(
 				`SELECT c.id, c.name, c.type,
 					COALESCE((
@@ -159,7 +152,6 @@ const app = new Hono<{ Bindings: Env }>()
 				.filter((r) => r.type === type)
 				.reduce((sum, r) => sum + r[key], 0);
 		return c.json({
-			start_balance: start?.balance ?? 0,
 			income: total("income", "actual"),
 			expenses: total("expense", "actual"),
 			planned_income: total("income", "planned"),

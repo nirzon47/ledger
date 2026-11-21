@@ -60,7 +60,7 @@ function MonthPage() {
 				<h1 className="text-2xl font-semibold">Month</h1>
 				<MonthSwitcher month={month} />
 			</div>
-			<div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+			<div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
 				<Stat
 					label="Income"
 					value={summary.income}
@@ -71,12 +71,12 @@ function MonthPage() {
 					value={summary.expenses}
 					note={`Planned ${formatMoney(summary.planned_expenses)}`}
 				/>
-				<Stat label="Left this month" value={left} signed />
 				<Stat
-					label="End balance"
-					value={summary.start_balance + left}
-					note={`Start ${formatMoney(summary.start_balance)}`}
+					label="Left this month"
+					value={left}
+					note={`Planned ${formatMoney(summary.planned_income - summary.planned_expenses)}`}
 					signed
+					className="col-span-2 lg:col-span-1"
 				/>
 			</div>
 			<DueRecurring month={month} items={due} />
@@ -121,11 +121,12 @@ type StatProps = {
 	value: number;
 	note?: string;
 	signed?: boolean;
+	className?: string;
 };
 
-function Stat({ label, value, note, signed }: StatProps) {
+function Stat({ label, value, note, signed, className }: StatProps) {
 	return (
-		<Card size="sm">
+		<Card size="sm" className={className}>
 			<CardHeader>
 				<CardDescription>{label}</CardDescription>
 				<CardTitle
