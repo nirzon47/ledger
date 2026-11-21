@@ -1,6 +1,11 @@
+import { isMonth } from "../../worker/month";
 import type { Account } from "./api";
 
-export { isMonth } from "../../worker/month";
+export { isMonth };
+
+export const validateMonthSearch = (
+	search: Record<string, unknown>,
+): { month?: string } => (isMonth(search.month) ? { month: search.month } : {});
 
 export function toMonth(date: Date) {
 	return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;

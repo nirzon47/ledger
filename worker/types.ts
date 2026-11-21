@@ -11,6 +11,15 @@ export type Category = {
 	type: "expense" | "income";
 };
 
+export type CategoryTotal = Category & { actual: number };
+
+export type Summary = {
+	start_balance: number;
+	income: number;
+	expenses: number;
+	categories: CategoryTotal[];
+};
+
 export type Suggestion = {
 	description: string;
 	type: "expense" | "income";

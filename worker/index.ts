@@ -8,7 +8,14 @@ import {
 	type TransactionInput,
 	transactionInput,
 } from "./schemas";
-import type { Account, Category, Suggestion, Transaction } from "./types";
+import type {
+	Account,
+	Category,
+	CategoryTotal,
+	Suggestion,
+	Summary,
+	Transaction,
+} from "./types";
 
 type Ctx = Context<{ Bindings: Env }>;
 
@@ -92,6 +99,38 @@ const app = new Hono<{ Bindings: Env }>()
 			.bind(month)
 			.all<Transaction>();
 		return c.json(results);
+	})
+	.get("/summary", async (c) => {
+		const month = c.req.query("month");
+		if (!isMonth(month)) return c.json({ error: "month must be YYYY-MM" }, 400);
+		const [start, totals] = await Promise.all([
+			c.env.DB.prepare(
+				`SELECT COALESCE(SUM(CASE type WHEN 'income' THEN amount ELSE -amount END), 0)
+					AS balance
+				FROM transactions WHERE budget_month < ?`,
+			)
+				.bind(month)
+				.first<{ balance: number }>(),
+			c.env.DB.prepare(
+				`SELECT c.id, c.name, c.type, COALESCE(SUM(t.amount), 0) AS actual
+				FROM categories c
+				LEFT JOIN transactions t ON t.category_id = c.id AND t.budget_month = ?
+				GROUP BY c.id
+				ORDER BY c.id`,
+			)
+				.bind(month)
+				.all<CategoryTotal>(),
+		]);
+		const total = (type: Category["type"]) =>
+			totals.results
+				.filter((r) => r.type === type)
+				.reduce((sum, r) => sum + r.actual, 0);
+		return c.json({
+			start_balance: start?.balance ?? 0,
+			income: total("income"),
+			expenses: total("expense"),
+			categories: totals.results,
+		} satisfies Summary);
 	})
 	.get("/suggestions", async (c) => {
 		const { results } = await c.env.DB.prepare(

@@ -6,7 +6,9 @@ export type {
 export type {
 	Account,
 	Category,
+	CategoryTotal,
 	Suggestion,
+	Summary,
 	Transaction,
 } from "../../worker/types";
 

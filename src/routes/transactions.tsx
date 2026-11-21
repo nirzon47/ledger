@@ -18,12 +18,11 @@ import {
 } from "@/components/ui/table";
 import { api, type Transaction } from "@/lib/api";
 import { formatDay, formatMoney } from "@/lib/format";
-import { defaultMonth, isMonth, monthLabel } from "@/lib/month";
+import { defaultMonth, monthLabel, validateMonthSearch } from "@/lib/month";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/transactions")({
-	validateSearch: (search: Record<string, unknown>): { month?: string } =>
-		isMonth(search.month) ? { month: search.month } : {},
+	validateSearch: validateMonthSearch,
 	loaderDeps: ({ search }) => ({ month: search.month ?? defaultMonth() }),
 	loader: async ({ deps }) => ({
 		month: deps.month,
