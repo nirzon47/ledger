@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { api, type Transaction, type TransactionInput } from "@/lib/api";
+import { confirmWithHaptic } from "@/lib/haptics";
 import { budgetMonthFor, monthLabel, shiftMonth, today } from "@/lib/month";
 import { useSave } from "@/lib/use-save";
 
@@ -81,7 +82,8 @@ export function TransactionForm({ initial, preset, onSaved }: Props) {
 	}
 
 	function remove() {
-		if (!initial || !confirm(`Delete "${initial.description}"?`)) return;
+		if (!initial || !confirmWithHaptic(`Delete "${initial.description}"?`))
+			return;
 		run(() => api(`/transactions/${initial.id}`, { method: "DELETE" }));
 	}
 

@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { type Account, type AccountInput, api } from "@/lib/api";
+import { confirmWithHaptic } from "@/lib/haptics";
 import { useSave } from "@/lib/use-save";
 
 const kinds = [
@@ -41,7 +42,7 @@ export function AccountForm({ initial, onDone }: Props) {
 	}
 
 	function remove() {
-		if (!initial || !confirm(`Delete ${initial.name}?`)) return;
+		if (!initial || !confirmWithHaptic(`Delete ${initial.name}?`)) return;
 		run(() => api(`/accounts/${initial.id}`, { method: "DELETE" }));
 	}
 

@@ -1,5 +1,6 @@
 import { useRouter } from "@tanstack/react-router";
 import { useState } from "react";
+import { haptic } from "./haptics";
 
 export function useSave(onDone: () => void) {
 	const router = useRouter();
@@ -11,9 +12,11 @@ export function useSave(onDone: () => void) {
 		setError(null);
 		try {
 			await action();
+			haptic("success");
 			await router.invalidate();
 			onDone();
 		} catch (err) {
+			haptic("warning");
 			setError(err instanceof Error ? err.message : String(err));
 		} finally {
 			setSaving(false);

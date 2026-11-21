@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { api, type Category, type CategoryInput } from "@/lib/api";
+import { confirmWithHaptic } from "@/lib/haptics";
 import { useSave } from "@/lib/use-save";
 
 type Props = {
@@ -33,7 +34,7 @@ export function CategoryForm({ type, initial, onDone }: Props) {
 	}
 
 	function remove() {
-		if (!initial || !confirm(`Delete ${initial.name}?`)) return;
+		if (!initial || !confirmWithHaptic(`Delete ${initial.name}?`)) return;
 		run(() => api(`/categories/${initial.id}`, { method: "DELETE" }));
 	}
 
