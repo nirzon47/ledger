@@ -1,5 +1,6 @@
 export type {
 	AccountInput,
+	BalanceInput,
 	BudgetInput,
 	CategoryInput,
 	RecurringInput,
@@ -8,6 +9,7 @@ export type {
 export type {
 	Account,
 	AiSummary,
+	Balance,
 	Category,
 	CategoryTotal,
 	Insights,

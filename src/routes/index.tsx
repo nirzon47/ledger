@@ -2,6 +2,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { AiSummaryCard } from "@/components/ai-summary-card";
+import { BalanceStrip } from "@/components/balance-strip";
 import { BudgetForm } from "@/components/budget-form";
 import { DueRecurring } from "@/components/due-recurring";
 import { MonthCharts } from "@/components/month-charts";
@@ -55,6 +56,7 @@ function MonthPage() {
 				<h1 className="text-2xl font-semibold">Month</h1>
 				<MonthSwitcher month={month} />
 			</div>
+			<BalanceStrip />
 			{month >= toMonth(new Date()) && (
 				<AiSummaryCard query={queries.aiMonth(month)} />
 			)}

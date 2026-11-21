@@ -26,6 +26,12 @@ export type Summary = {
 
 export type AiSummary = { content: string; generated_at: string };
 
+export type Balance = {
+	kind: "mf" | "liquid";
+	amount: number;
+	recorded_on: string;
+};
+
 export type TrendRow = {
 	month: string;
 	category_id: number;

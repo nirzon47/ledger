@@ -7,6 +7,7 @@ import { getInsights, getSummary, getTrendRows } from "./data";
 import { isMonth } from "./month";
 import {
 	accountInput,
+	balanceInput,
 	budgetInput,
 	categoryInput,
 	categoryRename,
@@ -17,6 +18,7 @@ import {
 } from "./schemas";
 import type {
 	Account,
+	Balance,
 	Category,
 	Recurring,
 	Suggestion,
@@ -149,6 +151,30 @@ const app = new Hono<{ Bindings: Env }>()
 				trendsFacts(c.env.DB, from, to),
 			),
 		);
+	})
+	.get("/balances", async (c) => {
+		const { results } = await c.env.DB.prepare(
+			`SELECT kind, amount, recorded_on FROM balances b
+			WHERE id = (
+				SELECT id FROM balances WHERE kind = b.kind
+				ORDER BY recorded_on DESC, id DESC LIMIT 1
+			)`,
+		).all<Balance>();
+		return c.json(results);
+	})
+	.post("/balances", async (c) => {
+		const input = await parseBody(c, balanceInput);
+		if ("error" in input) return c.json(input, 400);
+		const { recorded_on, ...amounts } = input.data;
+		const insert = c.env.DB.prepare(
+			"INSERT INTO balances (kind, amount, recorded_on) VALUES (?, ?, ?)",
+		);
+		await c.env.DB.batch(
+			Object.entries(amounts)
+				.filter(([, amount]) => amount !== undefined)
+				.map(([kind, amount]) => insert.bind(kind, amount, recorded_on)),
+		);
+		return c.body(null, 204);
 	})
 	.put("/budgets", async (c) => {
 		const input = await parseBody(c, budgetInput);

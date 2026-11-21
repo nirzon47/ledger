@@ -27,6 +27,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 				queryClient.ensureQueryData({ ...queries.accounts, ...instant }),
 				queryClient.ensureQueryData({ ...queries.categories, ...instant }),
 				queryClient.ensureQueryData({ ...queries.suggestions, ...instant }),
+				queryClient.ensureQueryData({ ...queries.balances, ...instant }),
 			]),
 		component: RootLayout,
 	},
