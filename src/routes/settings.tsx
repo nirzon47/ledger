@@ -64,7 +64,7 @@ function Settings() {
 											<button
 												type="button"
 												onClick={() => setAccount(a)}
-												className="flex w-full justify-between py-2 text-left text-sm hover:text-primary"
+												className="flex w-full justify-between py-2 text-left text-sm hover:text-chart-2"
 											>
 												<span>{a.name}</span>
 												{a.kind === "card" && (
@@ -107,7 +107,7 @@ function Settings() {
 										<Badge
 											key={c.id}
 											variant="secondary"
-											className="hover:text-primary"
+											className="hover:text-chart-2"
 											render={
 												<button
 													type="button"

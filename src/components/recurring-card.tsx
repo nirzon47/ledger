@@ -45,7 +45,7 @@ export function RecurringCard({ items }: { items: Recurring[] }) {
 									<button
 										type="button"
 										onClick={() => setEditing(r)}
-										className="flex w-full items-center justify-between gap-3 py-2 text-left text-sm hover:text-primary"
+										className="flex w-full items-center justify-between gap-3 py-2 text-left text-sm hover:text-chart-2"
 									>
 										<span className="min-w-0">
 											<span className="block truncate">{r.description}</span>
@@ -57,7 +57,7 @@ export function RecurringCard({ items }: { items: Recurring[] }) {
 										<span
 											className={cn(
 												"tabular-nums",
-												r.type === "income" && "text-primary",
+												r.type === "income" && "text-chart-2",
 											)}
 										>
 											{r.type === "income" && "+"}

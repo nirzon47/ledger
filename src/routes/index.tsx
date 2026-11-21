@@ -186,7 +186,7 @@ function CategoryCard({ type, rows, onPick }: CategoryCardProps) {
 								onClick={() => onPick(row)}
 								className={cn(
 									grid,
-									"w-full py-2 hover:text-primary",
+									"w-full py-2 hover:text-chart-2",
 									!row.planned && !row.actual && "text-muted-foreground",
 								)}
 							>
@@ -206,4 +206,4 @@ function CategoryCard({ type, rows, onPick }: CategoryCardProps) {
 }
 
 const tone = (value: number) =>
-	value > 0 ? "text-primary" : value < 0 ? "text-destructive" : undefined;
+	value > 0 ? "text-chart-2" : value < 0 ? "text-destructive" : undefined;

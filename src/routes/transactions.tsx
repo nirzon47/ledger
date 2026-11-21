@@ -95,7 +95,7 @@ function Transactions() {
 								<TableCell
 									className={cn(
 										"text-right tabular-nums",
-										t.type === "income" && "text-primary",
+										t.type === "income" && "text-chart-2",
 									)}
 								>
 									{t.type === "income" && "+"}
