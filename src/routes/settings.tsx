@@ -2,6 +2,7 @@ import { createFileRoute, useLoaderData } from "@tanstack/react-router";
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { AccountForm } from "@/components/account-form";
+import { CategoryForm } from "@/components/category-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,7 +18,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import type { Account } from "@/lib/api";
+import type { Account, Category } from "@/lib/api";
 
 export const Route = createFileRoute("/settings")({
 	component: Settings,
@@ -26,6 +27,10 @@ export const Route = createFileRoute("/settings")({
 function Settings() {
 	const { accounts, categories } = useLoaderData({ from: "__root__" });
 	const [account, setAccount] = useState<Account | "new" | null>(null);
+	const [category, setCategory] = useState<{
+		type: Category["type"];
+		initial?: Category;
+	} | null>(null);
 	return (
 		<div className="space-y-4">
 			<h1 className="text-2xl font-semibold">Settings</h1>
@@ -76,14 +81,34 @@ function Settings() {
 				<CardContent className="space-y-4">
 					{(["expense", "income"] as const).map((type) => (
 						<div key={type} className="space-y-2">
-							<p className="text-sm text-muted-foreground">
-								{type === "expense" ? "Expense" : "Income"}
-							</p>
+							<div className="flex items-center justify-between">
+								<p className="text-sm text-muted-foreground">
+									{type === "expense" ? "Expense" : "Income"}
+								</p>
+								<Button
+									variant="ghost"
+									size="xs"
+									onClick={() => setCategory({ type })}
+								>
+									<PlusIcon />
+									Add
+								</Button>
+							</div>
 							<div className="flex flex-wrap gap-2">
 								{categories
 									.filter((c) => c.type === type)
 									.map((c) => (
-										<Badge key={c.id} variant="secondary">
+										<Badge
+											key={c.id}
+											variant="secondary"
+											className="hover:text-primary"
+											render={
+												<button
+													type="button"
+													onClick={() => setCategory({ type, initial: c })}
+												/>
+											}
+										>
 											{c.name}
 										</Badge>
 									))}
@@ -107,6 +132,27 @@ function Settings() {
 							key={account === "new" ? "new" : account.id}
 							initial={account === "new" ? undefined : account}
 							onDone={() => setAccount(null)}
+						/>
+					)}
+				</DialogContent>
+			</Dialog>
+			<Dialog
+				open={category !== null}
+				onOpenChange={(open) => !open && setCategory(null)}
+			>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
+							{category?.initial
+								? "Edit category"
+								: `Add ${category?.type} category`}
+						</DialogTitle>
+					</DialogHeader>
+					{category && (
+						<CategoryForm
+							key={category.initial?.id ?? category.type}
+							{...category}
+							onDone={() => setCategory(null)}
 						/>
 					)}
 				</DialogContent>

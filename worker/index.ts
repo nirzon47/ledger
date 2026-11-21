@@ -3,6 +3,8 @@ import { z } from "zod";
 import { isMonth } from "./month";
 import {
 	accountInput,
+	categoryInput,
+	categoryRename,
 	type TransactionInput,
 	transactionInput,
 } from "./schemas";
@@ -51,6 +53,30 @@ const app = new Hono<{ Bindings: Env }>()
 		).all<Category>();
 		return c.json(results);
 	})
+	.post("/categories", async (c) => {
+		const input = await parseBody(c, categoryInput);
+		if ("error" in input) return c.json(input, 400);
+		return write(
+			c,
+			c.env.DB.prepare(
+				"INSERT INTO categories (name, type) VALUES (?, ?) RETURNING id",
+			).bind(input.data.name, input.data.type),
+			201,
+		);
+	})
+	.put("/categories/:id{[0-9]+}", async (c) => {
+		const input = await parseBody(c, categoryRename);
+		if ("error" in input) return c.json(input, 400);
+		return write(
+			c,
+			c.env.DB.prepare(
+				"UPDATE categories SET name = ? WHERE id = ? RETURNING id",
+			).bind(input.data.name, Number(c.req.param("id"))),
+		);
+	})
+	.delete("/categories/:id{[0-9]+}", (c) =>
+		removeUnused(c, "categories", "category_id", Number(c.req.param("id"))),
+	)
 	.get("/transactions", async (c) => {
 		const month = c.req.query("month");
 		if (!isMonth(month)) return c.json({ error: "month must be YYYY-MM" }, 400);
