@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useLoaderData } from "@tanstack/react-router";
+import { CategoryHeatmap } from "@/components/category-heatmap";
 import {
 	IncomeSpentChart,
 	type MonthTotals,
@@ -35,6 +36,7 @@ export const Route = createFileRoute("/trends")({
 
 function Trends() {
 	const { range, months, rows } = Route.useLoaderData();
+	const { categories } = useLoaderData({ from: "__root__" });
 	const totals: MonthTotals[] = months.map((month) => {
 		const sum = (type: TrendRow["type"]) =>
 			rows
@@ -104,6 +106,21 @@ function Trends() {
 							</tbody>
 						</table>
 					</details>
+				</CardContent>
+			</Card>
+			<Card>
+				<CardHeader>
+					<CardTitle>By category</CardTitle>
+					<CardDescription>
+						Expenses per month, biggest categories first
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<CategoryHeatmap
+						months={months}
+						rows={rows}
+						categories={categories}
+					/>
 				</CardContent>
 			</Card>
 		</div>
