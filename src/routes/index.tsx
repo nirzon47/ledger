@@ -1,6 +1,7 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { AiSummaryCard } from "@/components/ai-summary-card";
 import { BudgetForm } from "@/components/budget-form";
 import { DueRecurring } from "@/components/due-recurring";
 import { MonthCharts } from "@/components/month-charts";
@@ -25,6 +26,7 @@ import {
 	defaultMonth,
 	monthLabel,
 	neighbours,
+	toMonth,
 	validateMonthSearch,
 } from "@/lib/month";
 import { ensureMonth, prefetchMonth, queries } from "@/lib/queries";
@@ -53,6 +55,9 @@ function MonthPage() {
 				<h1 className="text-2xl font-semibold">Month</h1>
 				<MonthSwitcher month={month} />
 			</div>
+			{month >= toMonth(new Date()) && (
+				<AiSummaryCard query={queries.aiMonth(month)} />
+			)}
 			<div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
 				<Stat
 					label="Income"

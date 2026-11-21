@@ -5,6 +5,7 @@ import {
 } from "@tanstack/react-query";
 import {
 	type Account,
+	type AiSummary,
 	api,
 	type Category,
 	type Insights,
@@ -19,6 +20,9 @@ import { defaultMonth, monthsEnding, toMonth } from "./month";
 export const queryClient = new QueryClient({
 	defaultOptions: { queries: { staleTime: 60_000 } },
 });
+
+// summaries only change weekly on the server
+const HOUR = 60 * 60_000;
 
 export const queries = {
 	accounts: queryOptions({
@@ -65,6 +69,18 @@ export const queries = {
 			queryKey: ["trends", from, to],
 			queryFn: () => api<TrendRow[]>(`/trends?from=${from}&to=${to}`),
 		}),
+	aiMonth: (month: string) =>
+		queryOptions({
+			queryKey: ["ai", "month", month],
+			queryFn: () => api<AiSummary | null>(`/ai/month?month=${month}`),
+			staleTime: HOUR,
+		}),
+	aiTrends: (from: string, to: string) =>
+		queryOptions({
+			queryKey: ["ai", "trends", from, to],
+			queryFn: () => api<AiSummary | null>(`/ai/trends?from=${from}&to=${to}`),
+			staleTime: HOUR,
+		}),
 };
 
 // cached data renders immediately; stale data refreshes in the background
@@ -96,6 +112,8 @@ export function preloadApp() {
 		queryClient.prefetchQuery(queries.recurring),
 		queryClient.prefetchQuery(queries.transactions(month)),
 		queryClient.prefetchQuery(queries.trends(months[0], month)),
+		queryClient.prefetchQuery(queries.aiTrends(months[0], month)),
+		queryClient.prefetchQuery(queries.aiMonth(month)),
 		prefetchMonth(month),
 	]);
 }

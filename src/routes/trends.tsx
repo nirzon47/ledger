@@ -1,5 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { AiSummaryCard } from "@/components/ai-summary-card";
 import { CategoryHeatmap } from "@/components/category-heatmap";
 import {
 	IncomeSpentChart,
@@ -77,6 +78,9 @@ function Trends() {
 					))}
 				</div>
 			</div>
+			<AiSummaryCard
+				query={queries.aiTrends(months[0], months[months.length - 1])}
+			/>
 			<Card>
 				<CardHeader>
 					<CardTitle>Income vs spent</CardTitle>

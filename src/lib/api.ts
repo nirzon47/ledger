@@ -7,6 +7,7 @@ export type {
 } from "../../worker/schemas";
 export type {
 	Account,
+	AiSummary,
 	Category,
 	CategoryTotal,
 	Insights,
