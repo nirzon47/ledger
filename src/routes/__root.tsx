@@ -5,6 +5,8 @@ import {
 	ReceiptTextIcon,
 	SettingsIcon,
 } from "lucide-react";
+import { AddTransaction } from "@/components/add-transaction";
+import { type Account, api, type Category } from "@/lib/api";
 
 const links = [
 	{ to: "/", label: "Month", icon: CalendarDaysIcon },
@@ -13,7 +15,17 @@ const links = [
 	{ to: "/settings", label: "Settings", icon: SettingsIcon },
 ] as const;
 
-export const Route = createRootRoute({ component: RootLayout });
+export const Route = createRootRoute({
+	loader: async () => {
+		const [accounts, categories] = await Promise.all([
+			api<Account[]>("/accounts"),
+			api<Category[]>("/categories"),
+		]);
+		return { accounts, categories };
+	},
+	staleTime: Number.POSITIVE_INFINITY,
+	component: RootLayout,
+});
 
 function RootLayout() {
 	return (
@@ -39,6 +51,7 @@ function RootLayout() {
 			<main className="mx-auto max-w-5xl p-4">
 				<Outlet />
 			</main>
+			<AddTransaction />
 		</div>
 	);
 }

@@ -4,5 +4,8 @@
 	"files": {
 		"includes": ["**", "!src/routeTree.gen.ts", "!worker-configuration.d.ts"]
 	},
-	"css": { "parser": { "tailwindDirectives": true } }
+	"css": { "parser": { "tailwindDirectives": true } },
+	"overrides": [
+		{ "includes": ["src/components/ui/**"], "linter": { "enabled": false } }
+	]
 }

@@ -1,21 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useLoaderData } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { type Account, api, type Category } from "@/lib/api";
 
 export const Route = createFileRoute("/settings")({
-	loader: async () => {
-		const [accounts, categories] = await Promise.all([
-			api<Account[]>("/accounts"),
-			api<Category[]>("/categories"),
-		]);
-		return { accounts, categories };
-	},
 	component: Settings,
 });
 
 function Settings() {
-	const { accounts, categories } = Route.useLoaderData();
+	const { accounts, categories } = useLoaderData({ from: "__root__" });
 	return (
 		<div className="space-y-4">
 			<h1 className="text-2xl font-semibold">Settings</h1>

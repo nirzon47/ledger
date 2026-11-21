@@ -1,7 +1,22 @@
+import type { Account } from "./api";
+
 export { isMonth } from "../../worker/month";
 
 export function toMonth(date: Date) {
 	return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+export function today() {
+	const now = new Date();
+	return `${toMonth(now)}-${String(now.getDate()).padStart(2, "0")}`;
+}
+
+export function budgetMonthFor(date: string, account?: Account) {
+	const month = date.slice(0, 7);
+	const start = account?.cycle_start_day;
+	return start && Number(date.slice(8, 10)) >= start
+		? shiftMonth(month, 1)
+		: month;
 }
 
 export function shiftMonth(month: string, by: number) {
