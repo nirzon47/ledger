@@ -6,6 +6,8 @@ import {
 	budgetInput,
 	categoryInput,
 	categoryRename,
+	type RecurringInput,
+	recurringInput,
 	type TransactionInput,
 	transactionInput,
 } from "./schemas";
@@ -13,6 +15,7 @@ import type {
 	Account,
 	Category,
 	CategoryTotal,
+	Recurring,
 	Suggestion,
 	Summary,
 	Transaction,
@@ -171,7 +174,7 @@ const app = new Hono<{ Bindings: Env }>()
 		return c.json(results);
 	})
 	.post("/transactions", async (c) => {
-		const input = await readTransaction(c);
+		const input = await readTyped(c, transactionInput);
 		if ("error" in input) return c.json(input, 400);
 		const row = await c.env.DB.prepare(
 			`INSERT INTO transactions
@@ -183,7 +186,7 @@ const app = new Hono<{ Bindings: Env }>()
 		return c.json(row, 201);
 	})
 	.put("/transactions/:id{[0-9]+}", async (c) => {
-		const input = await readTransaction(c);
+		const input = await readTyped(c, transactionInput);
 		if ("error" in input) return c.json(input, 400);
 		const row = await c.env.DB.prepare(
 			`UPDATE transactions SET type = ?, date = ?, budget_month = ?, amount = ?,
@@ -194,16 +197,48 @@ const app = new Hono<{ Bindings: Env }>()
 			.first<{ id: number }>();
 		return row ? c.json(row) : c.json({ error: "Not found" }, 404);
 	})
-	.delete("/transactions/:id{[0-9]+}", async (c) => {
-		const { meta } = await c.env.DB.prepare(
-			"DELETE FROM transactions WHERE id = ?",
-		)
-			.bind(Number(c.req.param("id")))
-			.run();
-		return meta.changes
-			? c.body(null, 204)
-			: c.json({ error: "Not found" }, 404);
-	});
+	.delete("/transactions/:id{[0-9]+}", (c) =>
+		remove(c, "transactions", Number(c.req.param("id"))),
+	)
+	.get("/recurring", async (c) => {
+		const { results } = await c.env.DB.prepare(
+			`SELECT r.id, r.type, r.description, r.amount, r.day,
+				r.category_id, c.name AS category, r.account_id, a.name AS account
+			FROM recurring r
+			JOIN categories c ON c.id = r.category_id
+			LEFT JOIN accounts a ON a.id = r.account_id
+			ORDER BY r.day, r.description`,
+		).all<Recurring>();
+		return c.json(results);
+	})
+	.post("/recurring", async (c) => {
+		const input = await readTyped(c, recurringInput);
+		if ("error" in input) return c.json(input, 400);
+		return write(
+			c,
+			c.env.DB.prepare(
+				`INSERT INTO recurring
+					(type, description, amount, day, category_id, account_id)
+				VALUES (?, ?, ?, ?, ?, ?) RETURNING id`,
+			).bind(...recurringColumns(input.data)),
+			201,
+		);
+	})
+	.put("/recurring/:id{[0-9]+}", async (c) => {
+		const input = await readTyped(c, recurringInput);
+		if ("error" in input) return c.json(input, 400);
+		return write(
+			c,
+			c.env.DB.prepare(
+				`UPDATE recurring SET type = ?, description = ?, amount = ?, day = ?,
+					category_id = ?, account_id = ?
+				WHERE id = ? RETURNING id`,
+			).bind(...recurringColumns(input.data), Number(c.req.param("id"))),
+		);
+	})
+	.delete("/recurring/:id{[0-9]+}", (c) =>
+		remove(c, "recurring", Number(c.req.param("id"))),
+	);
 
 async function parseBody<S extends z.ZodType>(c: Ctx, schema: S) {
 	const parsed = schema.safeParse(await c.req.json().catch(() => null));
@@ -211,8 +246,10 @@ async function parseBody<S extends z.ZodType>(c: Ctx, schema: S) {
 	return { data: parsed.data };
 }
 
-async function readTransaction(c: Ctx) {
-	const input = await parseBody(c, transactionInput);
+async function readTyped<
+	S extends z.ZodType<{ type: string; category_id: number }>,
+>(c: Ctx, schema: S) {
+	const input = await parseBody(c, schema);
 	if ("error" in input) return input;
 	const category = await c.env.DB.prepare(
 		"SELECT type FROM categories WHERE id = ?",
@@ -245,12 +282,19 @@ async function removeUnused(
 	id: number,
 ) {
 	const used = await c.env.DB.prepare(
-		`SELECT COUNT(*) AS n FROM transactions WHERE ${column} = ?`,
+		`SELECT
+			(SELECT COUNT(*) FROM transactions WHERE ${column} = ?1) AS transactions,
+			(SELECT COUNT(*) FROM recurring WHERE ${column} = ?1) AS recurring`,
 	)
 		.bind(id)
-		.first<{ n: number }>();
-	if (used?.n) {
-		return c.json({ error: `Used by ${used.n} transaction(s)` }, 409);
+		.first<{ transactions: number; recurring: number }>();
+	if (used?.transactions || used?.recurring) {
+		return c.json(
+			{
+				error: `Used by ${used.transactions} transaction(s) and ${used.recurring} recurring item(s)`,
+			},
+			409,
+		);
 	}
 	const results = await c.env.DB.batch([
 		...(table === "categories"
@@ -262,6 +306,22 @@ async function removeUnused(
 		? c.body(null, 204)
 		: c.json({ error: "Not found" }, 404);
 }
+
+async function remove(c: Ctx, table: "transactions" | "recurring", id: number) {
+	const { meta } = await c.env.DB.prepare(`DELETE FROM ${table} WHERE id = ?`)
+		.bind(id)
+		.run();
+	return meta.changes ? c.body(null, 204) : c.json({ error: "Not found" }, 404);
+}
+
+const recurringColumns = (r: RecurringInput) => [
+	r.type,
+	r.description,
+	r.amount,
+	r.day,
+	r.category_id,
+	r.account_id,
+];
 
 const columns = (t: TransactionInput) => [
 	t.type,

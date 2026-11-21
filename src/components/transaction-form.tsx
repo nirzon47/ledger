@@ -1,7 +1,12 @@
 import { useLoaderData } from "@tanstack/react-router";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { type FormEvent, useState } from "react";
-import { FormActions, Segmented } from "@/components/form-parts";
+import {
+	CategoryAccountFields,
+	FormActions,
+	Segmented,
+	transactionTypes,
+} from "@/components/form-parts";
 import { Button } from "@/components/ui/button";
 import {
 	Field,
@@ -11,28 +16,16 @@ import {
 	FieldTitle,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import {
-	NativeSelect,
-	NativeSelectOptGroup,
-	NativeSelectOption,
-} from "@/components/ui/native-select";
 import { api, type Transaction, type TransactionInput } from "@/lib/api";
 import { budgetMonthFor, monthLabel, shiftMonth, today } from "@/lib/month";
 import { useSave } from "@/lib/use-save";
 
 type Type = TransactionInput["type"];
 
-const types = [
-	{ value: "expense", label: "Expense" },
-	{ value: "income", label: "Income" },
-] as const;
-
 type Props = { initial?: Transaction; onSaved: () => void };
 
 export function TransactionForm({ initial, onSaved }: Props) {
-	const { accounts, categories, suggestions } = useLoaderData({
-		from: "__root__",
-	});
+	const { accounts, suggestions } = useLoaderData({ from: "__root__" });
 	const { run, saving, error } = useSave(onSaved);
 	const [type, setType] = useState<Type>(initial?.type ?? "expense");
 	const [amount, setAmount] = useState(
@@ -92,7 +85,7 @@ export function TransactionForm({ initial, onSaved }: Props) {
 			<FieldGroup className="gap-4">
 				<Segmented
 					value={type}
-					options={types}
+					options={transactionTypes}
 					onChange={(t) => {
 						setType(t);
 						setCategoryId("");
@@ -140,54 +133,13 @@ export function TransactionForm({ initial, onSaved }: Props) {
 						))}
 					</datalist>
 				</Field>
-				<div className="grid grid-cols-2 gap-3">
-					<Field>
-						<FieldLabel htmlFor="category">Category</FieldLabel>
-						<NativeSelect
-							id="category"
-							className="w-full"
-							required
-							value={categoryId}
-							onChange={(e) => setCategoryId(e.target.value)}
-						>
-							<NativeSelectOption value="" disabled>
-								Pick one
-							</NativeSelectOption>
-							{categories
-								.filter((c) => c.type === type)
-								.map((c) => (
-									<NativeSelectOption key={c.id} value={c.id}>
-										{c.name}
-									</NativeSelectOption>
-								))}
-						</NativeSelect>
-					</Field>
-					<Field>
-						<FieldLabel htmlFor="account">Account</FieldLabel>
-						<NativeSelect
-							id="account"
-							className="w-full"
-							value={accountId}
-							onChange={(e) => setAccountId(e.target.value)}
-						>
-							<NativeSelectOption value="">None</NativeSelectOption>
-							{(["bank", "card"] as const).map((kind) => (
-								<NativeSelectOptGroup
-									key={kind}
-									label={kind === "bank" ? "Banks" : "Cards"}
-								>
-									{accounts
-										.filter((a) => a.kind === kind)
-										.map((a) => (
-											<NativeSelectOption key={a.id} value={a.id}>
-												{a.name}
-											</NativeSelectOption>
-										))}
-								</NativeSelectOptGroup>
-							))}
-						</NativeSelect>
-					</Field>
-				</div>
+				<CategoryAccountFields
+					type={type}
+					categoryId={categoryId}
+					accountId={accountId}
+					onCategory={setCategoryId}
+					onAccount={setAccountId}
+				/>
 				<Field>
 					<FieldTitle>Counts toward</FieldTitle>
 					<div className="flex items-center gap-1">

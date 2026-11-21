@@ -3,6 +3,7 @@ import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { AccountForm } from "@/components/account-form";
 import { CategoryForm } from "@/components/category-form";
+import { RecurringCard } from "@/components/recurring-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,14 +19,16 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import type { Account, Category } from "@/lib/api";
+import { type Account, api, type Category, type Recurring } from "@/lib/api";
 
 export const Route = createFileRoute("/settings")({
+	loader: () => api<Recurring[]>("/recurring"),
 	component: Settings,
 });
 
 function Settings() {
 	const { accounts, categories } = useLoaderData({ from: "__root__" });
+	const recurring = Route.useLoaderData();
 	const [account, setAccount] = useState<Account | "new" | null>(null);
 	const [category, setCategory] = useState<{
 		type: Category["type"];
@@ -117,6 +120,7 @@ function Settings() {
 					))}
 				</CardContent>
 			</Card>
+			<RecurringCard items={recurring} />
 			<Dialog
 				open={account !== null}
 				onOpenChange={(open) => !open && setAccount(null)}

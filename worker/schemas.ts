@@ -35,6 +35,18 @@ export const categoryRename = categoryInput.pick({ name: true });
 
 export type CategoryInput = z.infer<typeof categoryInput>;
 
+export const recurringInput = transactionInput
+	.pick({
+		type: true,
+		description: true,
+		amount: true,
+		category_id: true,
+		account_id: true,
+	})
+	.extend({ day: z.number().int().min(1).max(31) });
+
+export type RecurringInput = z.infer<typeof recurringInput>;
+
 export const budgetInput = z.object({
 	month: z.string().refine(isMonth, "Must be YYYY-MM"),
 	category_id: z.number().int(),

@@ -22,6 +22,18 @@ export type Summary = {
 	categories: CategoryTotal[];
 };
 
+export type Recurring = {
+	id: number;
+	type: "expense" | "income";
+	description: string;
+	amount: number;
+	day: number;
+	category_id: number;
+	category: string;
+	account_id: number | null;
+	account: string | null;
+};
+
 export type Suggestion = {
 	description: string;
 	type: "expense" | "income";

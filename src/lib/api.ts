@@ -2,12 +2,14 @@ export type {
 	AccountInput,
 	BudgetInput,
 	CategoryInput,
+	RecurringInput,
 	TransactionInput,
 } from "../../worker/schemas";
 export type {
 	Account,
 	Category,
 	CategoryTotal,
+	Recurring,
 	Suggestion,
 	Summary,
 	Transaction,
