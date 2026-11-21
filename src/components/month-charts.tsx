@@ -1,5 +1,6 @@
 import { TriangleAlertIcon } from "lucide-react";
 import type { ReactNode } from "react";
+import { SpendDonut } from "@/components/spend-donut";
 import {
 	Card,
 	CardContent,
@@ -26,7 +27,10 @@ export function MonthCharts({ summary }: { summary: Summary }) {
 	const planned = expenses.filter((c) => c.planned > 0);
 
 	return (
-		<div className="grid gap-4 lg:grid-cols-3">
+		<div className="grid gap-4 lg:grid-cols-2">
+			<ChartCard title="Spend split" description="Top 5 categories this month">
+				<SpendDonut categories={summary.categories} />
+			</ChartCard>
 			<ChartCard title="Where it went" description="Expenses by category">
 				<BarList bars={byCategory} total={summary.expenses} />
 			</ChartCard>
