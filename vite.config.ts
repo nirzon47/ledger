@@ -7,11 +7,13 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
 	plugins: [
-		tanstackRouter({ target: "react", autoCodeSplitting: true }),
+		tanstackRouter({ target: "react" }),
 		react(),
 		tailwindcss(),
 		cloudflare(),
 	],
+	// one bundle on purpose so tab switches never wait on a chunk download
+	build: { chunkSizeWarningLimit: 700 },
 	resolve: {
 		alias: { "@": path.resolve(import.meta.dirname, "./src") },
 	},

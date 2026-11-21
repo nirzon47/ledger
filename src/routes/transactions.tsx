@@ -25,7 +25,7 @@ import {
 	neighbours,
 	validateMonthSearch,
 } from "@/lib/month";
-import { queries } from "@/lib/queries";
+import { instant, queries } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/transactions")({
@@ -35,7 +35,10 @@ export const Route = createFileRoute("/transactions")({
 		for (const m of neighbours(month)) {
 			queryClient.prefetchQuery(queries.transactions(m));
 		}
-		return queryClient.ensureQueryData(queries.transactions(month));
+		return queryClient.ensureQueryData({
+			...queries.transactions(month),
+			...instant,
+		});
 	},
 	component: Transactions,
 });

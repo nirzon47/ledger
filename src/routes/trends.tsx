@@ -16,7 +16,7 @@ import {
 import type { TrendRow } from "@/lib/api";
 import { formatMoney } from "@/lib/format";
 import { defaultMonth, monthLabel, monthsEnding } from "@/lib/month";
-import { queries, useLists } from "@/lib/queries";
+import { instant, queries, useLists } from "@/lib/queries";
 
 const ranges = [6, 12, 24];
 
@@ -35,7 +35,7 @@ export const Route = createFileRoute("/trends")({
 			: {},
 	loaderDeps: ({ search }) => ({ range: search.range ?? 12 }),
 	loader: ({ context: { queryClient }, deps: { range } }) =>
-		queryClient.ensureQueryData(trendWindow(range).query),
+		queryClient.ensureQueryData({ ...trendWindow(range).query, ...instant }),
 	component: Trends,
 });
 

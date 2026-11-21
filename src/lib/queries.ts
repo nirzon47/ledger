@@ -67,6 +67,17 @@ export const queries = {
 		}),
 };
 
+// cached data renders immediately; stale data refreshes in the background
+export const instant = { revalidateIfStale: true } as const;
+
+export function ensureMonth(month: string) {
+	return Promise.all([
+		queryClient.ensureQueryData({ ...queries.summary(month), ...instant }),
+		queryClient.ensureQueryData({ ...queries.due(month), ...instant }),
+		queryClient.ensureQueryData({ ...queries.insights(month), ...instant }),
+	]);
+}
+
 export function prefetchMonth(month: string) {
 	return Promise.all([
 		queryClient.prefetchQuery(queries.summary(month)),

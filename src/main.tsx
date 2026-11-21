@@ -25,15 +25,12 @@ declare module "@tanstack/react-router" {
 const root = document.getElementById("root");
 if (!root) throw new Error("Missing #root");
 
-// the splash in index.html stays up until the main screens are cached, at most 3s
-const splashLimit = new Promise((resolve) => setTimeout(resolve, 3000));
+preloadApp();
 
-Promise.race([preloadApp(), splashLimit]).then(() =>
-	createRoot(root).render(
-		<StrictMode>
-			<QueryClientProvider client={queryClient}>
-				<RouterProvider router={router} />
-			</QueryClientProvider>
-		</StrictMode>,
-	),
+createRoot(root).render(
+	<StrictMode>
+		<QueryClientProvider client={queryClient}>
+			<RouterProvider router={router} />
+		</QueryClientProvider>
+	</StrictMode>,
 );

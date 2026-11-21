@@ -27,7 +27,7 @@ import {
 	neighbours,
 	validateMonthSearch,
 } from "@/lib/month";
-import { prefetchMonth, queries } from "@/lib/queries";
+import { ensureMonth, prefetchMonth, queries } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
@@ -35,7 +35,7 @@ export const Route = createFileRoute("/")({
 	loaderDeps: ({ search }) => ({ month: search.month ?? defaultMonth() }),
 	loader: ({ deps: { month } }) => {
 		for (const m of neighbours(month)) prefetchMonth(m);
-		return prefetchMonth(month);
+		return ensureMonth(month);
 	},
 	component: MonthPage,
 });

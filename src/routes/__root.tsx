@@ -11,7 +11,7 @@ import {
 	SettingsIcon,
 } from "lucide-react";
 import { AddTransaction } from "@/components/add-transaction";
-import { queries } from "@/lib/queries";
+import { instant, queries } from "@/lib/queries";
 
 const links = [
 	{ to: "/", label: "Month", icon: CalendarDaysIcon },
@@ -24,9 +24,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 	{
 		loader: ({ context: { queryClient } }) =>
 			Promise.all([
-				queryClient.ensureQueryData(queries.accounts),
-				queryClient.ensureQueryData(queries.categories),
-				queryClient.ensureQueryData(queries.suggestions),
+				queryClient.ensureQueryData({ ...queries.accounts, ...instant }),
+				queryClient.ensureQueryData({ ...queries.categories, ...instant }),
+				queryClient.ensureQueryData({ ...queries.suggestions, ...instant }),
 			]),
 		component: RootLayout,
 	},

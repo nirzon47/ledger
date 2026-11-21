@@ -21,11 +21,11 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import type { Account, Category } from "@/lib/api";
-import { queries, useLists } from "@/lib/queries";
+import { instant, queries, useLists } from "@/lib/queries";
 
 export const Route = createFileRoute("/settings")({
 	loader: ({ context: { queryClient } }) =>
-		queryClient.ensureQueryData(queries.recurring),
+		queryClient.ensureQueryData({ ...queries.recurring, ...instant }),
 	component: Settings,
 });
 
