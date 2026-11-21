@@ -9,6 +9,7 @@ import {
 	ChartLineIcon,
 	ReceiptTextIcon,
 	SettingsIcon,
+	TargetIcon,
 } from "lucide-react";
 import { AddTransaction } from "@/components/add-transaction";
 import { instant, queries } from "@/lib/queries";
@@ -17,6 +18,7 @@ const links = [
 	{ to: "/", label: "Month", icon: CalendarDaysIcon },
 	{ to: "/transactions", label: "Transactions", icon: ReceiptTextIcon },
 	{ to: "/trends", label: "Trends", icon: ChartLineIcon },
+	{ to: "/goals", label: "Goals", icon: TargetIcon },
 	{ to: "/settings", label: "Settings", icon: SettingsIcon },
 ] as const;
 

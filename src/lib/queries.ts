@@ -42,6 +42,10 @@ export const queries = {
 		queryKey: ["balances"],
 		queryFn: () => api<Balance[]>("/balances"),
 	}),
+	balanceHistory: queryOptions({
+		queryKey: ["balances", "history"],
+		queryFn: () => api<Balance[]>("/balances/history"),
+	}),
 	recurring: queryOptions({
 		queryKey: ["recurring"],
 		queryFn: () => api<Recurring[]>("/recurring"),
@@ -116,6 +120,7 @@ export function preloadApp() {
 		queryClient.prefetchQuery(queries.suggestions),
 		queryClient.prefetchQuery(queries.recurring),
 		queryClient.prefetchQuery(queries.balances),
+		queryClient.prefetchQuery(queries.balanceHistory),
 		queryClient.prefetchQuery(queries.transactions(month)),
 		queryClient.prefetchQuery(queries.trends(months[0], month)),
 		queryClient.prefetchQuery(queries.aiTrends(months[0], month)),

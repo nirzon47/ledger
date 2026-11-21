@@ -152,6 +152,12 @@ const app = new Hono<{ Bindings: Env }>()
 			),
 		);
 	})
+	.get("/balances/history", async (c) => {
+		const { results } = await c.env.DB.prepare(
+			"SELECT kind, amount, recorded_on FROM balances ORDER BY recorded_on, id",
+		).all<Balance>();
+		return c.json(results);
+	})
 	.get("/balances", async (c) => {
 		const { results } = await c.env.DB.prepare(
 			`SELECT kind, amount, recorded_on FROM balances b
