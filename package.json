@@ -7,7 +7,8 @@
 		"build": "vite build",
 		"cf-typegen": "wrangler types",
 		"format": "biome format --write",
-		"check": "biome check && tsc -b"
+		"check": "biome check && tsc -b",
+		"db:migrate": "wrangler d1 migrations apply ledger --local"
 	},
 	"dependencies": {
 		"@base-ui/react": "^1.9.0",

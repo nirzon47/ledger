@@ -1,0 +1,32 @@
+INSERT INTO accounts (name, kind, cycle_start_day) VALUES
+	('Federal Bank', 'bank', NULL),
+	('IDFC Bank', 'bank', NULL),
+	('SBI Bank', 'bank', NULL),
+	('Amazon CC', 'card', 1),
+	('POP CC', 'card', 1),
+	('MMT CC', 'card', 1),
+	('Neu CC', 'card', 1),
+	('EazyDiner CC', 'card', 1),
+	('Scapia CC', 'card', 1),
+	('First CC', 'card', 1);
+
+INSERT INTO categories (name, type) VALUES
+	('Food', 'expense'),
+	('Gifts', 'expense'),
+	('Medical', 'expense'),
+	('Digital stuff', 'expense'),
+	('Transportation', 'expense'),
+	('Apparel', 'expense'),
+	('Subscriptions', 'expense'),
+	('Utilities', 'expense'),
+	('Travel', 'expense'),
+	('Debt', 'expense'),
+	('Household', 'expense'),
+	('Hardware', 'expense'),
+	('Savings / Investments', 'expense'),
+	('Personal', 'expense'),
+	('Savings', 'income'),
+	('Paycheck', 'income'),
+	('Bonus', 'income'),
+	('Interest', 'income'),
+	('Other', 'income');
