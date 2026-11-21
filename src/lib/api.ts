@@ -9,6 +9,7 @@ export type {
 	Account,
 	Category,
 	CategoryTotal,
+	Insights,
 	Recurring,
 	Suggestion,
 	Summary,

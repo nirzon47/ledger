@@ -4,6 +4,7 @@ import { BudgetForm } from "@/components/budget-form";
 import { DueRecurring } from "@/components/due-recurring";
 import { MonthCharts } from "@/components/month-charts";
 import { MonthSwitcher } from "@/components/month-switcher";
+import { SpendLess } from "@/components/spend-less";
 import {
 	Card,
 	CardContent,
@@ -20,6 +21,7 @@ import {
 import {
 	api,
 	type CategoryTotal,
+	type Insights,
 	type Recurring,
 	type Summary,
 } from "@/lib/api";
@@ -36,19 +38,20 @@ export const Route = createFileRoute("/")({
 	validateSearch: validateMonthSearch,
 	loaderDeps: ({ search }) => ({ month: search.month ?? defaultMonth() }),
 	loader: async ({ deps: { month } }) => {
-		const [summary, due] = await Promise.all([
+		const [summary, due, insights] = await Promise.all([
 			api<Summary>(`/summary?month=${month}`),
 			month >= toMonth(new Date())
 				? api<Recurring[]>(`/recurring/due?month=${month}`)
 				: [],
+			api<Insights>(`/insights?month=${month}`),
 		]);
-		return { month, summary, due };
+		return { month, summary, due, insights };
 	},
 	component: MonthPage,
 });
 
 function MonthPage() {
-	const { month, summary, due } = Route.useLoaderData();
+	const { month, summary, due, insights } = Route.useLoaderData();
 	const [planning, setPlanning] = useState<CategoryTotal | null>(null);
 	const left = summary.income - summary.expenses;
 	return (
@@ -78,6 +81,7 @@ function MonthPage() {
 			</div>
 			<DueRecurring month={month} items={due} />
 			<MonthCharts summary={summary} />
+			<SpendLess insights={insights} />
 			<div className="grid gap-4 lg:grid-cols-2">
 				{(["expense", "income"] as const).map((type) => (
 					<CategoryCard

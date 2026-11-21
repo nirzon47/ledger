@@ -25,6 +25,13 @@ export type Summary = {
 	accounts: AccountSpend[];
 };
 
+export type Insights = {
+	history_months: number;
+	above_usual: { id: number; name: string; actual: number; usual: number }[];
+	top_descriptions: { description: string; times: number; total: number }[];
+	recurring: { id: number; description: string; amount: number }[];
+};
+
 export type Recurring = {
 	id: number;
 	type: "expense" | "income";
