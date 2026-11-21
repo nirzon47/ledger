@@ -1,4 +1,4 @@
-export type { Account, Category } from "../../worker/types";
+export type { Account, Category, Transaction } from "../../worker/types";
 
 export async function api<T>(path: string): Promise<T> {
 	const res = await fetch(`/api${path}`);

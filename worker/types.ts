@@ -10,3 +10,16 @@ export type Category = {
 	name: string;
 	type: "expense" | "income";
 };
+
+export type Transaction = {
+	id: number;
+	type: "expense" | "income";
+	date: string;
+	budget_month: string;
+	amount: number;
+	description: string;
+	category_id: number;
+	category: string;
+	account_id: number | null;
+	account: string | null;
+};
