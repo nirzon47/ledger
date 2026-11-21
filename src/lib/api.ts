@@ -4,6 +4,7 @@ export type {
 	BudgetInput,
 	CategoryInput,
 	GoalInput,
+	PlanInput,
 	RecurringInput,
 	TransactionInput,
 } from "../../worker/schemas";

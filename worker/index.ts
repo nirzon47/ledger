@@ -12,6 +12,7 @@ import {
 	categoryInput,
 	categoryRename,
 	goalInput,
+	planInput,
 	type RecurringInput,
 	recurringInput,
 	type TransactionInput,
@@ -167,6 +168,33 @@ const app = new Hono<{ Bindings: Env }>()
 			FROM plan p ORDER BY p.month`,
 		).all<PlanRow>();
 		return c.json(results);
+	})
+	.put("/plan/:month{[0-9-]+}", async (c) => {
+		const month = c.req.param("month");
+		if (!isMonth(month)) return c.json({ error: "month must be YYYY-MM" }, 400);
+		const input = await parseBody(c, planInput);
+		if ("error" in input) return c.json(input, 400);
+		const p = input.data;
+		await c.env.DB.prepare(
+			`INSERT INTO plan (month, savings, capex, loan, corpus, note)
+			VALUES (?, ?, ?, ?, ?, ?)
+			ON CONFLICT (month) DO UPDATE SET savings = excluded.savings,
+				capex = excluded.capex, loan = excluded.loan,
+				corpus = excluded.corpus, note = excluded.note`,
+		)
+			.bind(month, p.savings, p.capex, p.loan, p.corpus, p.note)
+			.run();
+		return c.body(null, 204);
+	})
+	.delete("/plan/:month{[0-9-]+}", async (c) => {
+		const month = c.req.param("month");
+		if (!isMonth(month)) return c.json({ error: "month must be YYYY-MM" }, 400);
+		const { meta } = await c.env.DB.prepare("DELETE FROM plan WHERE month = ?")
+			.bind(month)
+			.run();
+		return meta.changes
+			? c.body(null, 204)
+			: c.json({ error: "Not found" }, 404);
 	})
 	.get("/goals", async (c) => {
 		const { results } = await c.env.DB.prepare(

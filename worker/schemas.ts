@@ -67,6 +67,16 @@ export const balanceInput = z
 
 export type BalanceInput = z.infer<typeof balanceInput>;
 
+export const planInput = z.object({
+	savings: z.number().int().min(0),
+	capex: z.number().int().min(0),
+	loan: z.number().int().min(0),
+	corpus: z.number().int().min(0).nullable(),
+	note: z.string().trim().max(500),
+});
+
+export type PlanInput = z.infer<typeof planInput>;
+
 export const goalInput = z.object({
 	name: z.string().trim().min(1).max(100),
 	amount: z.number().int().positive(),
