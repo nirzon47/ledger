@@ -13,6 +13,8 @@ export type Category = {
 
 export type CategoryTotal = Category & { planned: number; actual: number };
 
+export type AccountSpend = { id: number | null; name: string; actual: number };
+
 export type Summary = {
 	start_balance: number;
 	income: number;
@@ -20,6 +22,7 @@ export type Summary = {
 	planned_income: number;
 	planned_expenses: number;
 	categories: CategoryTotal[];
+	accounts: AccountSpend[];
 };
 
 export type Recurring = {

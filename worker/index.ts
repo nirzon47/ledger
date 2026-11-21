@@ -13,6 +13,7 @@ import {
 } from "./schemas";
 import type {
 	Account,
+	AccountSpend,
 	Category,
 	CategoryTotal,
 	Recurring,
@@ -113,7 +114,7 @@ const app = new Hono<{ Bindings: Env }>()
 	.get("/summary", async (c) => {
 		const month = c.req.query("month");
 		if (!isMonth(month)) return c.json({ error: "month must be YYYY-MM" }, 400);
-		const [start, totals] = await Promise.all([
+		const [start, totals, accounts] = await Promise.all([
 			c.env.DB.prepare(
 				`SELECT COALESCE(SUM(CASE type WHEN 'income' THEN amount ELSE -amount END), 0)
 					AS balance
@@ -137,6 +138,17 @@ const app = new Hono<{ Bindings: Env }>()
 			)
 				.bind(month)
 				.all<CategoryTotal>(),
+			c.env.DB.prepare(
+				`SELECT a.id, COALESCE(a.name, 'No account') AS name,
+					SUM(t.amount) AS actual
+				FROM transactions t
+				LEFT JOIN accounts a ON a.id = t.account_id
+				WHERE t.budget_month = ? AND t.type = 'expense'
+				GROUP BY t.account_id
+				ORDER BY actual DESC`,
+			)
+				.bind(month)
+				.all<AccountSpend>(),
 		]);
 		const total = (type: Category["type"], key: "planned" | "actual") =>
 			totals.results
@@ -149,6 +161,7 @@ const app = new Hono<{ Bindings: Env }>()
 			planned_income: total("income", "planned"),
 			planned_expenses: total("expense", "planned"),
 			categories: totals.results,
+			accounts: accounts.results,
 		} satisfies Summary);
 	})
 	.put("/budgets", async (c) => {

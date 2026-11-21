@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { BudgetForm } from "@/components/budget-form";
 import { DueRecurring } from "@/components/due-recurring";
+import { MonthCharts } from "@/components/month-charts";
 import { MonthSwitcher } from "@/components/month-switcher";
 import {
 	Card,
@@ -76,6 +77,7 @@ function MonthPage() {
 				/>
 			</div>
 			<DueRecurring month={month} items={due} />
+			<MonthCharts summary={summary} />
 			<div className="grid gap-4 lg:grid-cols-2">
 				{(["expense", "income"] as const).map((type) => (
 					<CategoryCard
