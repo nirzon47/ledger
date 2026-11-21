@@ -14,7 +14,7 @@ import {
 	type Transaction,
 	type TrendRow,
 } from "./api";
-import { toMonth } from "./month";
+import { defaultMonth, monthsEnding, toMonth } from "./month";
 
 export const queryClient = new QueryClient({
 	defaultOptions: { queries: { staleTime: 60_000 } },
@@ -66,6 +66,28 @@ export const queries = {
 			queryFn: () => api<TrendRow[]>(`/trends?from=${from}&to=${to}`),
 		}),
 };
+
+export function prefetchMonth(month: string) {
+	return Promise.all([
+		queryClient.prefetchQuery(queries.summary(month)),
+		queryClient.prefetchQuery(queries.due(month)),
+		queryClient.prefetchQuery(queries.insights(month)),
+	]);
+}
+
+export function preloadApp() {
+	const month = defaultMonth();
+	const months = monthsEnding(month, 12);
+	return Promise.all([
+		queryClient.prefetchQuery(queries.accounts),
+		queryClient.prefetchQuery(queries.categories),
+		queryClient.prefetchQuery(queries.suggestions),
+		queryClient.prefetchQuery(queries.recurring),
+		queryClient.prefetchQuery(queries.transactions(month)),
+		queryClient.prefetchQuery(queries.trends(months[0], month)),
+		prefetchMonth(month),
+	]);
+}
 
 export function useLists() {
 	return {

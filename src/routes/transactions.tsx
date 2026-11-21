@@ -19,15 +19,24 @@ import {
 } from "@/components/ui/table";
 import type { Transaction } from "@/lib/api";
 import { formatDay, formatMoney } from "@/lib/format";
-import { defaultMonth, monthLabel, validateMonthSearch } from "@/lib/month";
+import {
+	defaultMonth,
+	monthLabel,
+	neighbours,
+	validateMonthSearch,
+} from "@/lib/month";
 import { queries } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/transactions")({
 	validateSearch: validateMonthSearch,
 	loaderDeps: ({ search }) => ({ month: search.month ?? defaultMonth() }),
-	loader: ({ context: { queryClient }, deps: { month } }) =>
-		queryClient.ensureQueryData(queries.transactions(month)),
+	loader: ({ context: { queryClient }, deps: { month } }) => {
+		for (const m of neighbours(month)) {
+			queryClient.prefetchQuery(queries.transactions(m));
+		}
+		return queryClient.ensureQueryData(queries.transactions(month));
+	},
 	component: Transactions,
 });
 

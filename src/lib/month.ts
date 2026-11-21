@@ -37,6 +37,11 @@ export function shiftMonth(month: string, by: number) {
 	return toMonth(new Date(y, m - 1 + by, 1));
 }
 
+export const neighbours = (month: string) => [
+	shiftMonth(month, -1),
+	shiftMonth(month, 1),
+];
+
 export function defaultMonth() {
 	return shiftMonth(toMonth(new Date()), 1);
 }

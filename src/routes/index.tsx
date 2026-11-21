@@ -21,19 +21,22 @@ import {
 } from "@/components/ui/dialog";
 import type { CategoryTotal } from "@/lib/api";
 import { formatMoney } from "@/lib/format";
-import { defaultMonth, monthLabel, validateMonthSearch } from "@/lib/month";
-import { queries } from "@/lib/queries";
+import {
+	defaultMonth,
+	monthLabel,
+	neighbours,
+	validateMonthSearch,
+} from "@/lib/month";
+import { prefetchMonth, queries } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
 	validateSearch: validateMonthSearch,
 	loaderDeps: ({ search }) => ({ month: search.month ?? defaultMonth() }),
-	loader: ({ context: { queryClient }, deps: { month } }) =>
-		Promise.all([
-			queryClient.ensureQueryData(queries.summary(month)),
-			queryClient.ensureQueryData(queries.due(month)),
-			queryClient.ensureQueryData(queries.insights(month)),
-		]),
+	loader: ({ deps: { month } }) => {
+		for (const m of neighbours(month)) prefetchMonth(m);
+		return prefetchMonth(month);
+	},
 	component: MonthPage,
 });
 
