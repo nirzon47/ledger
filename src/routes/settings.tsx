@@ -1,6 +1,23 @@
 import { createFileRoute, useLoaderData } from "@tanstack/react-router";
+import { PlusIcon } from "lucide-react";
+import { useState } from "react";
+import { AccountForm } from "@/components/account-form";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+	Card,
+	CardAction,
+	CardContent,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import type { Account } from "@/lib/api";
 
 export const Route = createFileRoute("/settings")({
 	component: Settings,
@@ -8,12 +25,19 @@ export const Route = createFileRoute("/settings")({
 
 function Settings() {
 	const { accounts, categories } = useLoaderData({ from: "__root__" });
+	const [account, setAccount] = useState<Account | "new" | null>(null);
 	return (
 		<div className="space-y-4">
 			<h1 className="text-2xl font-semibold">Settings</h1>
 			<Card>
 				<CardHeader>
 					<CardTitle>Accounts</CardTitle>
+					<CardAction>
+						<Button variant="ghost" size="sm" onClick={() => setAccount("new")}>
+							<PlusIcon />
+							Add
+						</Button>
+					</CardAction>
 				</CardHeader>
 				<CardContent className="space-y-4">
 					{(["bank", "card"] as const).map((kind) => (
@@ -25,16 +49,19 @@ function Settings() {
 								{accounts
 									.filter((a) => a.kind === kind)
 									.map((a) => (
-										<li
-											key={a.id}
-											className="flex justify-between py-2 text-sm"
-										>
-											<span>{a.name}</span>
-											{a.kind === "card" && (
-												<span className="text-muted-foreground">
-													cycle starts day {a.cycle_start_day}
-												</span>
-											)}
+										<li key={a.id}>
+											<button
+												type="button"
+												onClick={() => setAccount(a)}
+												className="flex w-full justify-between py-2 text-left text-sm hover:text-primary"
+											>
+												<span>{a.name}</span>
+												{a.kind === "card" && (
+													<span className="text-muted-foreground">
+														cycle starts day {a.cycle_start_day}
+													</span>
+												)}
+											</button>
 										</li>
 									))}
 							</ul>
@@ -65,6 +92,25 @@ function Settings() {
 					))}
 				</CardContent>
 			</Card>
+			<Dialog
+				open={account !== null}
+				onOpenChange={(open) => !open && setAccount(null)}
+			>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
+							{account === "new" ? "Add account" : "Edit account"}
+						</DialogTitle>
+					</DialogHeader>
+					{account && (
+						<AccountForm
+							key={account === "new" ? "new" : account.id}
+							initial={account === "new" ? undefined : account}
+							onDone={() => setAccount(null)}
+						/>
+					)}
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }

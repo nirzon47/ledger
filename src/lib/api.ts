@@ -1,4 +1,4 @@
-export type { TransactionInput } from "../../worker/schemas";
+export type { AccountInput, TransactionInput } from "../../worker/schemas";
 export type {
 	Account,
 	Category,

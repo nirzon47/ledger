@@ -12,3 +12,16 @@ export const transactionInput = z.object({
 });
 
 export type TransactionInput = z.infer<typeof transactionInput>;
+
+export const accountInput = z
+	.object({
+		name: z.string().trim().min(1).max(50),
+		kind: z.enum(["bank", "card"]),
+		cycle_start_day: z.number().int().min(1).max(31).nullable(),
+	})
+	.refine(
+		(a) => (a.kind === "card") === (a.cycle_start_day !== null),
+		"Cards need a cycle day, banks don't",
+	);
+
+export type AccountInput = z.infer<typeof accountInput>;

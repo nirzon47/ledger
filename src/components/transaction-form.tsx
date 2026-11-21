@@ -1,6 +1,7 @@
-import { useLoaderData, useRouter } from "@tanstack/react-router";
+import { useLoaderData } from "@tanstack/react-router";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { type FormEvent, useState } from "react";
+import { FormActions, Segmented } from "@/components/form-parts";
 import { Button } from "@/components/ui/button";
 import {
 	Field,
@@ -17,8 +18,14 @@ import {
 } from "@/components/ui/native-select";
 import { api, type Transaction, type TransactionInput } from "@/lib/api";
 import { budgetMonthFor, monthLabel, shiftMonth, today } from "@/lib/month";
+import { useSave } from "@/lib/use-save";
 
 type Type = TransactionInput["type"];
+
+const types = [
+	{ value: "expense", label: "Expense" },
+	{ value: "income", label: "Income" },
+] as const;
 
 type Props = { initial?: Transaction; onSaved: () => void };
 
@@ -26,7 +33,7 @@ export function TransactionForm({ initial, onSaved }: Props) {
 	const { accounts, categories, suggestions } = useLoaderData({
 		from: "__root__",
 	});
-	const router = useRouter();
+	const { run, saving, error } = useSave(onSaved);
 	const [type, setType] = useState<Type>(initial?.type ?? "expense");
 	const [amount, setAmount] = useState(
 		initial ? String(initial.amount / 100) : "",
@@ -42,9 +49,6 @@ export function TransactionForm({ initial, onSaved }: Props) {
 	const [monthOverride, setMonthOverride] = useState(
 		initial?.budget_month ?? null,
 	);
-	const [error, setError] = useState<string | null>(null);
-	const [saving, setSaving] = useState(false);
-
 	const account = accounts.find((a) => String(a.id) === accountId);
 	const budgetMonth = monthOverride ?? budgetMonthFor(date || today(), account);
 	const typeSuggestions = suggestions.filter((s) => s.type === type);
@@ -58,20 +62,6 @@ export function TransactionForm({ initial, onSaved }: Props) {
 		if (!match) return;
 		setCategoryId(String(match.category_id));
 		setAccountId(match.account_id ? String(match.account_id) : "");
-	}
-
-	async function run(action: () => Promise<unknown>) {
-		setSaving(true);
-		setError(null);
-		try {
-			await action();
-			await router.invalidate();
-			onSaved();
-		} catch (err) {
-			setError(err instanceof Error ? err.message : String(err));
-		} finally {
-			setSaving(false);
-		}
 	}
 
 	function submit(event: FormEvent) {
@@ -100,21 +90,14 @@ export function TransactionForm({ initial, onSaved }: Props) {
 	return (
 		<form onSubmit={submit}>
 			<FieldGroup className="gap-4">
-				<div className="grid grid-cols-2 gap-2">
-					{(["expense", "income"] as const).map((t) => (
-						<Button
-							key={t}
-							type="button"
-							variant={type === t ? "default" : "outline"}
-							onClick={() => {
-								setType(t);
-								setCategoryId("");
-							}}
-						>
-							{t === "expense" ? "Expense" : "Income"}
-						</Button>
-					))}
-				</div>
+				<Segmented
+					value={type}
+					options={types}
+					onChange={(t) => {
+						setType(t);
+						setCategoryId("");
+					}}
+				/>
 				<div className="grid grid-cols-2 gap-3">
 					<Field>
 						<FieldLabel htmlFor="amount">Amount (₹)</FieldLabel>
@@ -232,22 +215,7 @@ export function TransactionForm({ initial, onSaved }: Props) {
 					</div>
 				</Field>
 				{error && <FieldError>{error}</FieldError>}
-				<div className="flex gap-2">
-					{initial && (
-						<Button
-							type="button"
-							variant="destructive"
-							size="lg"
-							disabled={saving}
-							onClick={remove}
-						>
-							Delete
-						</Button>
-					)}
-					<Button type="submit" size="lg" className="flex-1" disabled={saving}>
-						{saving ? "Saving…" : "Save"}
-					</Button>
-				</div>
+				<FormActions saving={saving} onDelete={initial && remove} />
 			</FieldGroup>
 		</form>
 	);

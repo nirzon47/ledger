@@ -1,8 +1,14 @@
 import { type Context, Hono } from "hono";
 import { z } from "zod";
 import { isMonth } from "./month";
-import { type TransactionInput, transactionInput } from "./schemas";
+import {
+	accountInput,
+	type TransactionInput,
+	transactionInput,
+} from "./schemas";
 import type { Account, Category, Suggestion, Transaction } from "./types";
+
+type Ctx = Context<{ Bindings: Env }>;
 
 const app = new Hono<{ Bindings: Env }>()
 	.basePath("/api")
@@ -13,6 +19,32 @@ const app = new Hono<{ Bindings: Env }>()
 		).all<Account>();
 		return c.json(results);
 	})
+	.post("/accounts", async (c) => {
+		const input = await parseBody(c, accountInput);
+		if ("error" in input) return c.json(input, 400);
+		const a = input.data;
+		return write(
+			c,
+			c.env.DB.prepare(
+				"INSERT INTO accounts (name, kind, cycle_start_day) VALUES (?, ?, ?) RETURNING id",
+			).bind(a.name, a.kind, a.cycle_start_day),
+			201,
+		);
+	})
+	.put("/accounts/:id{[0-9]+}", async (c) => {
+		const input = await parseBody(c, accountInput);
+		if ("error" in input) return c.json(input, 400);
+		const a = input.data;
+		return write(
+			c,
+			c.env.DB.prepare(
+				"UPDATE accounts SET name = ?, kind = ?, cycle_start_day = ? WHERE id = ? RETURNING id",
+			).bind(a.name, a.kind, a.cycle_start_day, Number(c.req.param("id"))),
+		);
+	})
+	.delete("/accounts/:id{[0-9]+}", (c) =>
+		removeUnused(c, "accounts", "account_id", Number(c.req.param("id"))),
+	)
 	.get("/categories", async (c) => {
 		const { results } = await c.env.DB.prepare(
 			"SELECT id, name, type FROM categories ORDER BY id",
@@ -86,20 +118,57 @@ const app = new Hono<{ Bindings: Env }>()
 			: c.json({ error: "Not found" }, 404);
 	});
 
-async function readTransaction(c: Context<{ Bindings: Env }>) {
-	const parsed = transactionInput.safeParse(
-		await c.req.json().catch(() => null),
-	);
+async function parseBody<S extends z.ZodType>(c: Ctx, schema: S) {
+	const parsed = schema.safeParse(await c.req.json().catch(() => null));
 	if (!parsed.success) return { error: z.prettifyError(parsed.error) };
+	return { data: parsed.data };
+}
+
+async function readTransaction(c: Ctx) {
+	const input = await parseBody(c, transactionInput);
+	if ("error" in input) return input;
 	const category = await c.env.DB.prepare(
 		"SELECT type FROM categories WHERE id = ?",
 	)
-		.bind(parsed.data.category_id)
+		.bind(input.data.category_id)
 		.first<{ type: string }>();
-	if (category?.type !== parsed.data.type) {
-		return { error: `Not an ${parsed.data.type} category` };
+	if (category?.type !== input.data.type) {
+		return { error: `Not an ${input.data.type} category` };
 	}
-	return { data: parsed.data };
+	return input;
+}
+
+async function write(c: Ctx, statement: D1PreparedStatement, status = 200) {
+	try {
+		const row = await statement.first<{ id: number }>();
+		if (!row) return c.json({ error: "Not found" }, 404);
+		return c.json(row, status === 201 ? 201 : 200);
+	} catch (err) {
+		if (String(err).includes("UNIQUE constraint failed")) {
+			return c.json({ error: "That name already exists" }, 409);
+		}
+		throw err;
+	}
+}
+
+async function removeUnused(
+	c: Ctx,
+	table: "accounts" | "categories",
+	column: "account_id" | "category_id",
+	id: number,
+) {
+	const used = await c.env.DB.prepare(
+		`SELECT COUNT(*) AS n FROM transactions WHERE ${column} = ?`,
+	)
+		.bind(id)
+		.first<{ n: number }>();
+	if (used?.n) {
+		return c.json({ error: `Used by ${used.n} transaction(s)` }, 409);
+	}
+	const { meta } = await c.env.DB.prepare(`DELETE FROM ${table} WHERE id = ?`)
+		.bind(id)
+		.run();
+	return meta.changes ? c.body(null, 204) : c.json({ error: "Not found" }, 404);
 }
 
 const columns = (t: TransactionInput) => [
