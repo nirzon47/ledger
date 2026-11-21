@@ -1,13 +1,12 @@
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { DescriptionInput } from "@/components/description-input";
 import {
 	CategoryAccountFields,
 	FormActions,
+	MonthStepper,
 	Segmented,
 	transactionTypes,
 } from "@/components/form-parts";
-import { Button } from "@/components/ui/button";
 import {
 	Field,
 	FieldError,
@@ -18,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { api, type Transaction, type TransactionInput } from "@/lib/api";
 import { confirmWithHaptic } from "@/lib/haptics";
-import { budgetMonthFor, monthLabel, shiftMonth, today } from "@/lib/month";
+import { budgetMonthFor, today } from "@/lib/month";
 import { useLists } from "@/lib/queries";
 import { useSave } from "@/lib/use-save";
 
@@ -140,29 +139,7 @@ export function TransactionForm({ initial, preset, onSaved }: Props) {
 				/>
 				<Field>
 					<FieldTitle>Counts toward</FieldTitle>
-					<div className="flex items-center gap-1">
-						<Button
-							type="button"
-							variant="ghost"
-							size="icon"
-							aria-label="Previous month"
-							onClick={() => setMonthOverride(shiftMonth(budgetMonth, -1))}
-						>
-							<ChevronLeftIcon />
-						</Button>
-						<span className="min-w-36 text-center text-sm font-medium">
-							{monthLabel(budgetMonth)}
-						</span>
-						<Button
-							type="button"
-							variant="ghost"
-							size="icon"
-							aria-label="Next month"
-							onClick={() => setMonthOverride(shiftMonth(budgetMonth, 1))}
-						>
-							<ChevronRightIcon />
-						</Button>
-					</div>
+					<MonthStepper value={budgetMonth} onChange={setMonthOverride} />
 				</Field>
 				{error && <FieldError>{error}</FieldError>}
 				<FormActions saving={saving} onDelete={initial && remove} />

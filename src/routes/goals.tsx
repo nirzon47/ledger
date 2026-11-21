@@ -1,6 +1,7 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { BalanceStrip } from "@/components/balance-strip";
+import { MilestonesCard } from "@/components/milestones-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Balance } from "@/lib/api";
 import { formatDay, formatMoney } from "@/lib/format";
@@ -9,7 +10,10 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/goals")({
 	loader: ({ context: { queryClient } }) =>
-		queryClient.ensureQueryData({ ...queries.balanceHistory, ...instant }),
+		Promise.all([
+			queryClient.ensureQueryData({ ...queries.balanceHistory, ...instant }),
+			queryClient.ensureQueryData({ ...queries.goals, ...instant }),
+		]),
 	component: Goals,
 });
 
@@ -47,6 +51,7 @@ function Goals() {
 		<div className="space-y-4">
 			<h1 className="text-2xl font-semibold">Goals</h1>
 			<BalanceStrip />
+			<MilestonesCard />
 			<Card>
 				<CardHeader>
 					<CardTitle>Balance history</CardTitle>

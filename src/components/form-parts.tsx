@@ -1,3 +1,4 @@
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
 import {
@@ -6,6 +7,7 @@ import {
 	NativeSelectOption,
 } from "@/components/ui/native-select";
 import type { Category } from "@/lib/api";
+import { monthLabel, shiftMonth } from "@/lib/month";
 import { useLists } from "@/lib/queries";
 
 export const transactionTypes = [
@@ -128,6 +130,36 @@ export function CategoryAccountFields({
 					))}
 				</NativeSelect>
 			</Field>
+		</div>
+	);
+}
+
+type MonthStepperProps = { value: string; onChange: (month: string) => void };
+
+export function MonthStepper({ value, onChange }: MonthStepperProps) {
+	return (
+		<div className="flex items-center gap-1">
+			<Button
+				type="button"
+				variant="ghost"
+				size="icon"
+				aria-label="Previous month"
+				onClick={() => onChange(shiftMonth(value, -1))}
+			>
+				<ChevronLeftIcon />
+			</Button>
+			<span className="min-w-36 text-center text-sm font-medium">
+				{monthLabel(value)}
+			</span>
+			<Button
+				type="button"
+				variant="ghost"
+				size="icon"
+				aria-label="Next month"
+				onClick={() => onChange(shiftMonth(value, 1))}
+			>
+				<ChevronRightIcon />
+			</Button>
 		</div>
 	);
 }

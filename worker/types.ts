@@ -26,6 +26,14 @@ export type Summary = {
 
 export type AiSummary = { content: string; generated_at: string };
 
+export type Goal = {
+	id: number;
+	name: string;
+	amount: number;
+	target_month: string;
+	done: 0 | 1;
+};
+
 export type Balance = {
 	kind: "mf" | "liquid";
 	amount: number;

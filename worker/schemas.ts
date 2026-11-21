@@ -67,6 +67,15 @@ export const balanceInput = z
 
 export type BalanceInput = z.infer<typeof balanceInput>;
 
+export const goalInput = z.object({
+	name: z.string().trim().min(1).max(100),
+	amount: z.number().int().positive(),
+	target_month: z.string().refine(isMonth, "Must be YYYY-MM"),
+	done: z.boolean(),
+});
+
+export type GoalInput = z.infer<typeof goalInput>;
+
 export const budgetInput = z.object({
 	month: z.string().refine(isMonth, "Must be YYYY-MM"),
 	category_id: z.number().int(),

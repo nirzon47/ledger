@@ -11,6 +11,7 @@ import {
 	budgetInput,
 	categoryInput,
 	categoryRename,
+	goalInput,
 	type RecurringInput,
 	recurringInput,
 	type TransactionInput,
@@ -20,6 +21,7 @@ import type {
 	Account,
 	Balance,
 	Category,
+	Goal,
 	Recurring,
 	Suggestion,
 	Transaction,
@@ -152,6 +154,45 @@ const app = new Hono<{ Bindings: Env }>()
 			),
 		);
 	})
+	.get("/goals", async (c) => {
+		const { results } = await c.env.DB.prepare(
+			`SELECT id, name, amount, target_month, done FROM goals
+			ORDER BY done, target_month, id`,
+		).all<Goal>();
+		return c.json(results);
+	})
+	.post("/goals", async (c) => {
+		const input = await parseBody(c, goalInput);
+		if ("error" in input) return c.json(input, 400);
+		const g = input.data;
+		return write(
+			c,
+			c.env.DB.prepare(
+				"INSERT INTO goals (name, amount, target_month, done) VALUES (?, ?, ?, ?) RETURNING id",
+			).bind(g.name, g.amount, g.target_month, Number(g.done)),
+			201,
+		);
+	})
+	.put("/goals/:id{[0-9]+}", async (c) => {
+		const input = await parseBody(c, goalInput);
+		if ("error" in input) return c.json(input, 400);
+		const g = input.data;
+		return write(
+			c,
+			c.env.DB.prepare(
+				"UPDATE goals SET name = ?, amount = ?, target_month = ?, done = ? WHERE id = ? RETURNING id",
+			).bind(
+				g.name,
+				g.amount,
+				g.target_month,
+				Number(g.done),
+				Number(c.req.param("id")),
+			),
+		);
+	})
+	.delete("/goals/:id{[0-9]+}", (c) =>
+		remove(c, "goals", Number(c.req.param("id"))),
+	)
 	.get("/balances/history", async (c) => {
 		const { results } = await c.env.DB.prepare(
 			"SELECT kind, amount, recorded_on FROM balances ORDER BY recorded_on, id",
@@ -355,7 +396,11 @@ async function removeUnused(
 		: c.json({ error: "Not found" }, 404);
 }
 
-async function remove(c: Ctx, table: "transactions" | "recurring", id: number) {
+async function remove(
+	c: Ctx,
+	table: "transactions" | "recurring" | "goals",
+	id: number,
+) {
 	const { meta } = await c.env.DB.prepare(`DELETE FROM ${table} WHERE id = ?`)
 		.bind(id)
 		.run();

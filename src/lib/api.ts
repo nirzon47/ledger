@@ -3,6 +3,7 @@ export type {
 	BalanceInput,
 	BudgetInput,
 	CategoryInput,
+	GoalInput,
 	RecurringInput,
 	TransactionInput,
 } from "../../worker/schemas";
@@ -12,6 +13,7 @@ export type {
 	Balance,
 	Category,
 	CategoryTotal,
+	Goal,
 	Insights,
 	Recurring,
 	Suggestion,
