@@ -3,8 +3,17 @@ import type { CategoryTotal } from "@/lib/api";
 import { formatMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-// dataviz reference palette, dark steps; validated against the card surface
-const colors = ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181"];
+// dataviz reference palette, all 8 dark steps; validated against the card surface
+const colors = [
+	"#3987e5",
+	"#d95926",
+	"#199e70",
+	"#c98500",
+	"#d55181",
+	"#0ca30c",
+	"#9085e9",
+	"#e66767",
+];
 const otherColor = "#898781";
 
 const R = 60;
@@ -19,18 +28,26 @@ type Slice = {
 	color: string;
 };
 
-function toSlices(categories: CategoryTotal[]): Slice[] {
+type LegendRow = Slice & { slice: Slice["key"] };
+
+// the 8 biggest get their own color; any beyond share one grey "Other" slice
+function toSlices(categories: CategoryTotal[]) {
 	const spent = categories
 		.filter((c) => c.type === "expense" && c.actual > 0)
 		.sort((a, b) => b.actual - a.actual);
 	const top = spent.slice(0, colors.length);
 	const byId = top.map((c) => c.id).sort((a, b) => a - b);
-	const slices: Slice[] = top.map((c) => ({
-		key: c.id,
-		name: c.name,
-		value: c.actual,
-		color: colors[byId.indexOf(c.id)],
-	}));
+	const legend: LegendRow[] = spent.map((c, i) => {
+		const own = i < colors.length;
+		return {
+			key: c.id,
+			name: c.name,
+			value: c.actual,
+			color: own ? colors[byId.indexOf(c.id)] : otherColor,
+			slice: own ? c.id : "other",
+		};
+	});
+	const slices: Slice[] = legend.slice(0, colors.length);
 	const rest = spent.slice(colors.length).reduce((sum, c) => sum + c.actual, 0);
 	if (rest > 0) {
 		slices.push({
@@ -40,12 +57,12 @@ function toSlices(categories: CategoryTotal[]): Slice[] {
 			color: otherColor,
 		});
 	}
-	return slices;
+	return { slices, legend };
 }
 
 export function SpendDonut({ categories }: { categories: CategoryTotal[] }) {
 	const [active, setActive] = useState<Slice["key"] | null>(null);
-	const slices = toSlices(categories);
+	const { slices, legend } = toSlices(categories);
 	const total = slices.reduce((sum, s) => sum + s.value, 0);
 	if (total === 0) {
 		return (
@@ -108,12 +125,12 @@ export function SpendDonut({ categories }: { categories: CategoryTotal[] }) {
 				</div>
 			</div>
 			<ul className="w-full space-y-1.5 text-sm">
-				{slices.map((s) => (
+				{legend.map((s) => (
 					<li
 						key={s.key}
 						className={cn(
 							"flex items-center gap-2 transition-opacity",
-							active !== null && active !== s.key && "opacity-50",
+							active !== null && active !== s.slice && "opacity-50",
 						)}
 					>
 						<span

@@ -101,9 +101,11 @@ export async function monthFacts(db: D1Database, month: string) {
 		`Every spend, grouped by description: ${spends.results.map((d) => `${d.description} (${d.category}) ${d.times}x ${rupees(d.total)}`).join("; ")}.`,
 		`Paid with: ${s.accounts.map((a) => `${a.name} ${rupees(a.actual)}`).join("; ")}.`,
 		`Recurring expenses each month: ${insights.recurring.map((r) => `${r.description} ${rupees(r.amount)}`).join("; ") || "none"}.`,
-		progress >= 1
-			? `Projection: card spends for this month are complete. Recurring not yet added ${rupees(due)}${dueList}. Projected total ${rupees(projected)}, leaving ${rupees(income - projected)}.`
-			: `Projection: card spends so far ${rupees(card)} with ${Math.round(progress * 100)}% of the card cycle (${cycle}) gone, so about ${rupees(projectedCard)} at this pace. Other spends so far ${rupees(other)}. Recurring not yet added ${rupees(due)}${dueList}. Projected total ${rupees(projected)}, leaving about ${rupees(income - projected)}${s.income ? "" : " if income matches the usual"}.`,
+		month < t.month
+			? `Projection: this month is over and the figures above are final. Usual monthly income is ${rupees(usualIncome?.usual ?? 0)}.`
+			: progress >= 1
+				? `Projection: card spends for this month are complete. Recurring not yet added ${rupees(due)}${dueList}. Projected total ${rupees(projected)}, leaving ${rupees(income - projected)}.`
+				: `Projection: card spends so far ${rupees(card)} with ${Math.round(progress * 100)}% of the card cycle (${cycle}) gone, so about ${rupees(projectedCard)} at this pace. Other spends so far ${rupees(other)}. Recurring not yet added ${rupees(due)}${dueList}. Projected total ${rupees(projected)}, leaving about ${rupees(income - projected)}${s.income ? "" : " if income matches the usual"}.`,
 	].join("\n");
 }
 

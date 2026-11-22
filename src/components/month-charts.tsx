@@ -11,35 +11,21 @@ import {
 import type { Summary } from "@/lib/api";
 import { formatMoney } from "@/lib/format";
 
-type Bar = { key: string | number; name: string; value: number };
-
 export function MonthCharts({ summary }: { summary: Summary }) {
 	const expenses = summary.categories.filter((c) => c.type === "expense");
-	const byCategory = expenses
-		.filter((c) => c.actual > 0)
-		.map((c) => ({ key: c.id, name: c.name, value: c.actual }))
-		.sort((a, b) => b.value - a.value);
-	const byAccount = summary.accounts.map((a) => ({
-		key: a.id ?? "none",
-		name: a.name,
-		value: a.actual,
-	}));
 	const planned = expenses.filter((c) => c.planned > 0);
 
 	return (
 		<div className="grid gap-4 lg:grid-cols-2">
-			<ChartCard title="Spend split" description="Top 5 categories this month">
+			<ChartCard title="Spend split" description="Every category this month">
 				<SpendDonut categories={summary.categories} />
-			</ChartCard>
-			<ChartCard title="Where it went" description="Expenses by category">
-				<BarList bars={byCategory} total={summary.expenses} />
-			</ChartCard>
-			<ChartCard title="Paid with" description="Expenses by account">
-				<BarList bars={byAccount} total={summary.expenses} />
 			</ChartCard>
 			<ChartCard title="Planned vs actual" description="Expense categories">
 				{planned.length === 0 ? (
-					<Empty>Tap a category below to set a planned amount.</Empty>
+					<Empty>
+						Set a planned amount on any category in the Expenses table to track
+						it here.
+					</Empty>
 				) : (
 					<ul className="space-y-3">
 						{planned.map((c) => (
@@ -72,34 +58,6 @@ function ChartCard({ title, description, children }: ChartCardProps) {
 			</CardHeader>
 			<CardContent>{children}</CardContent>
 		</Card>
-	);
-}
-
-function BarList({ bars, total }: { bars: Bar[]; total: number }) {
-	if (bars.length === 0) return <Empty>No expenses this month.</Empty>;
-	const max = Math.max(...bars.map((b) => b.value));
-	return (
-		<ul className="space-y-3">
-			{bars.map((bar) => (
-				<li key={bar.key} className="group space-y-1 text-sm">
-					<div className="flex justify-between gap-3">
-						<span className="truncate">{bar.name}</span>
-						<span className="shrink-0 tabular-nums">
-							{formatMoney(bar.value)}
-							<span className="ml-1.5 text-muted-foreground">
-								{Math.round((bar.value / total) * 100)}%
-							</span>
-						</span>
-					</div>
-					<div className="h-2">
-						<div
-							className="h-full rounded-r-[4px] bg-chart-2 transition-opacity group-hover:opacity-80"
-							style={{ width: `${(bar.value / max) * 100}%` }}
-						/>
-					</div>
-				</li>
-			))}
-		</ul>
 	);
 }
 

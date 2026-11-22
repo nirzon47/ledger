@@ -26,7 +26,6 @@ import {
 	defaultMonth,
 	monthLabel,
 	neighbours,
-	toMonth,
 	validateMonthSearch,
 } from "@/lib/month";
 import { ensureMonth, prefetchMonth, queries } from "@/lib/queries";
@@ -55,9 +54,7 @@ function MonthPage() {
 				<h1 className="text-2xl font-semibold">Month</h1>
 				<MonthSwitcher month={month} />
 			</div>
-			{month >= toMonth(new Date()) && (
-				<AiSummaryCard query={queries.aiMonth(month)} />
-			)}
+			<AiSummaryCard query={queries.aiMonth(month)} />
 			<div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
 				<Stat
 					label="Income"
