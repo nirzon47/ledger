@@ -47,7 +47,7 @@ function RootLayout() {
 						<Link
 							key={to}
 							to={to}
-							activeOptions={{ exact: to === "/" }}
+							activeOptions={{ exact: to === "/", includeSearch: false }}
 							className="flex flex-1 flex-col items-center gap-1 py-2 text-xs text-muted-foreground data-[status=active]:text-foreground sm:flex-none sm:flex-row sm:px-3 sm:py-3 sm:text-sm"
 						>
 							<Icon className="size-5 sm:size-4" />

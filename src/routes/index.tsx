@@ -2,7 +2,6 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { AiSummaryCard } from "@/components/ai-summary-card";
-import { BalanceStrip } from "@/components/balance-strip";
 import { BudgetForm } from "@/components/budget-form";
 import { DueRecurring } from "@/components/due-recurring";
 import { MonthCharts } from "@/components/month-charts";
@@ -56,7 +55,6 @@ function MonthPage() {
 				<h1 className="text-2xl font-semibold">Month</h1>
 				<MonthSwitcher month={month} />
 			</div>
-			<BalanceStrip />
 			{month >= toMonth(new Date()) && (
 				<AiSummaryCard query={queries.aiMonth(month)} />
 			)}
@@ -147,11 +145,12 @@ type CategoryCardProps = {
 };
 
 const grid =
-	"grid grid-cols-3 gap-x-2 text-right sm:grid-cols-[1fr_repeat(3,5.5rem)]";
-const nameCell = "col-span-3 truncate text-left sm:col-span-1";
+	"hidden grid-cols-[1fr_repeat(3,5.5rem)] gap-x-2 text-right sm:grid";
+
+type Amounts = { planned: number; actual: number };
 
 function CategoryCard({ type, rows, onPick }: CategoryCardProps) {
-	const diff = (r: { planned: number; actual: number }) =>
+	const diff = (r: Amounts) =>
 		type === "expense" ? r.planned - r.actual : r.actual - r.planned;
 	const totals = rows.reduce(
 		(sum, r) => ({
@@ -167,18 +166,13 @@ function CategoryCard({ type, rows, onPick }: CategoryCardProps) {
 			</CardHeader>
 			<CardContent className="text-sm tabular-nums">
 				<div className={cn(grid, "pb-2 text-xs text-muted-foreground")}>
-					<span className="hidden text-left sm:block">Category</span>
+					<span className="text-left">Category</span>
 					<span>Planned</span>
 					<span>Actual</span>
 					<span>Diff</span>
 				</div>
-				<div className={cn(grid, "border-y py-2 font-medium")}>
-					<span className={nameCell}>Total</span>
-					<span>{formatMoney(totals.planned)}</span>
-					<span>{formatMoney(totals.actual)}</span>
-					<span className={tone(diff(totals))}>
-						{formatMoney(diff(totals))}
-					</span>
+				<div className="border-y py-2 font-medium">
+					<Line name="Total" amounts={totals} diff={diff(totals)} />
 				</div>
 				<ul className="divide-y">
 					{rows.map((row) => (
@@ -187,23 +181,45 @@ function CategoryCard({ type, rows, onPick }: CategoryCardProps) {
 								type="button"
 								onClick={() => onPick(row)}
 								className={cn(
-									grid,
-									"w-full py-2 hover:text-chart-2",
+									"block w-full py-2 text-left hover:text-chart-2",
 									!row.planned && !row.actual && "text-muted-foreground",
 								)}
 							>
-								<span className={nameCell}>{row.name}</span>
-								<span>{formatMoney(row.planned)}</span>
-								<span>{formatMoney(row.actual)}</span>
-								<span className={tone(diff(row))}>
-									{formatMoney(diff(row))}
-								</span>
+								<Line name={row.name} amounts={row} diff={diff(row)} />
 							</button>
 						</li>
 					))}
 				</ul>
 			</CardContent>
 		</Card>
+	);
+}
+
+type LineProps = { name: string; amounts: Amounts; diff: number };
+
+// phones: name and actual share a line; wider screens: the four-column table
+function Line({ name, amounts, diff }: LineProps) {
+	return (
+		<>
+			<span className="block sm:hidden">
+				<span className="flex items-baseline justify-between gap-3">
+					<span className="truncate">{name}</span>
+					<span className="shrink-0">{formatMoney(amounts.actual)}</span>
+				</span>
+				{amounts.planned > 0 && (
+					<span className="block text-right text-xs text-muted-foreground">
+						Planned {formatMoney(amounts.planned)} ·{" "}
+						<span className={tone(diff)}>Diff {formatMoney(diff)}</span>
+					</span>
+				)}
+			</span>
+			<span className={grid}>
+				<span className="truncate text-left">{name}</span>
+				<span>{formatMoney(amounts.planned)}</span>
+				<span>{formatMoney(amounts.actual)}</span>
+				<span className={tone(diff)}>{formatMoney(diff)}</span>
+			</span>
+		</>
 	);
 }
 

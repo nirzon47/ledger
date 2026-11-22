@@ -1,7 +1,7 @@
 import { Fragment, useState } from "react";
 import type { Category, TrendRow } from "@/lib/api";
 import { formatCompact, formatMoney } from "@/lib/format";
-import { monthLabel, shortMonth } from "@/lib/month";
+import { monthInitial, monthLabel, shortMonth } from "@/lib/month";
 import { cn } from "@/lib/utils";
 
 type Props = { months: string[]; rows: TrendRow[]; categories: Category[] };
@@ -78,8 +78,16 @@ export function CategoryHeatmap({ months, rows, categories }: Props) {
 				>
 					<span />
 					{months.map((m, i) => (
-						<span key={m} className="text-center text-muted-foreground">
-							{i % labelEvery === 0 ? shortMonth(m) : ""}
+						<span
+							key={m}
+							className="text-center whitespace-nowrap text-muted-foreground"
+						>
+							{i % labelEvery === 0 && (
+								<>
+									<span className="sm:hidden">{monthInitial(m)}</span>
+									<span className="hidden sm:inline">{shortMonth(m)}</span>
+								</>
+							)}
 						</span>
 					))}
 					<span className="pl-2 text-right text-muted-foreground">Total</span>
