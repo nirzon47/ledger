@@ -14,30 +14,36 @@ Each line is one or two short sentences. Plain text only: no markdown, bullets o
 Use ₹ with Indian digit grouping. Use only the data given and do no arithmetic of your own beyond simple comparisons.
 Card spends count toward the month their bill is paid.`;
 
+// written once, then rewritten only when over a week old and the data changed
 export async function cachedSummary(
 	env: Env,
 	scope: "month" | "trends",
 	key: string,
+	print: string,
 	facts: () => Promise<string>,
 ) {
 	const cached = await env.DB.prepare(
-		"SELECT content, generated_at FROM summaries WHERE scope = ? AND key = ?",
+		"SELECT content, generated_at, fingerprint FROM summaries WHERE scope = ? AND key = ?",
 	)
 		.bind(scope, key)
-		.first<AiSummary>();
-	const age = cached
-		? Date.now() - Date.parse(`${cached.generated_at.replace(" ", "T")}Z`)
-		: Number.POSITIVE_INFINITY;
-	if (cached && age < WEEK_MS) return cached;
+		.first<AiSummary & { fingerprint: string }>();
+	if (cached) {
+		const age =
+			Date.now() - Date.parse(`${cached.generated_at.replace(" ", "T")}Z`);
+		if (age < WEEK_MS || cached.fingerprint === print) {
+			return { content: cached.content, generated_at: cached.generated_at };
+		}
+	}
 
 	const content = await complete(env, await facts());
 	return env.DB.prepare(
-		`INSERT INTO summaries (scope, key, content) VALUES (?, ?, ?)
+		`INSERT INTO summaries (scope, key, content, fingerprint) VALUES (?, ?, ?, ?)
 		ON CONFLICT (scope, key) DO UPDATE
-			SET content = excluded.content, generated_at = datetime('now')
+			SET content = excluded.content, fingerprint = excluded.fingerprint,
+				generated_at = datetime('now')
 		RETURNING content, generated_at`,
 	)
-		.bind(scope, key, content)
+		.bind(scope, key, content, print)
 		.first<AiSummary>();
 }
 

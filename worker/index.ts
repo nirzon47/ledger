@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireAccess } from "./access";
 import { aiResponse, cachedSummary } from "./ai";
 import { monthFacts, trendsFacts } from "./ai-facts";
-import { getInsights, getSummary, getTrendRows } from "./data";
+import { fingerprint, getInsights, getSummary, getTrendRows } from "./data";
 import { isMonth } from "./month";
 import {
 	accountInput,
@@ -140,9 +140,13 @@ const app = new Hono<{ Bindings: Env }>()
 	.get("/ai/month", async (c) => {
 		const month = c.req.query("month");
 		if (!isMonth(month)) return c.json({ error: "month must be YYYY-MM" }, 400);
-		return aiResponse(c, () =>
-			cachedSummary(c.env, "month", month, () => monthFacts(c.env.DB, month)),
-		);
+		return aiResponse(c, async () => {
+			const print = await fingerprint(c.env.DB, month, month);
+			if (!print.count) return null;
+			return cachedSummary(c.env, "month", month, print.print, () =>
+				monthFacts(c.env.DB, month),
+			);
+		});
 	})
 	.get("/ai/trends", async (c) => {
 		const from = c.req.query("from");
@@ -150,11 +154,13 @@ const app = new Hono<{ Bindings: Env }>()
 		if (!isMonth(from) || !isMonth(to)) {
 			return c.json({ error: "from and to must be YYYY-MM" }, 400);
 		}
-		return aiResponse(c, () =>
-			cachedSummary(c.env, "trends", `${from}..${to}`, () =>
+		return aiResponse(c, async () => {
+			const print = await fingerprint(c.env.DB, from, to);
+			if (!print.count) return null;
+			return cachedSummary(c.env, "trends", `${from}..${to}`, print.print, () =>
 				trendsFacts(c.env.DB, from, to),
-			),
-		);
+			);
+		});
 	})
 	.get("/plan", async (c) => {
 		const { results } = await c.env.DB.prepare(

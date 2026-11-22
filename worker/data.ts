@@ -53,6 +53,22 @@ export async function getSummary(db: D1Database, month: string) {
 	} satisfies Summary;
 }
 
+// cheap signature of the transactions in a range; changes when entries are added, removed or edited
+export async function fingerprint(db: D1Database, from: string, to: string) {
+	const row = await db
+		.prepare(
+			`SELECT COUNT(*) AS count,
+				COUNT(*) || ':' || COALESCE(SUM(amount), 0) || ':' || COALESCE(SUM(id), 0)
+				|| ':' || COALESCE(SUM(category_id * 31 + COALESCE(account_id, 0)), 0)
+				|| ':' || COALESCE(SUM(length(description) + unicode(description)), 0)
+				AS print
+			FROM transactions WHERE budget_month BETWEEN ? AND ?`,
+		)
+		.bind(from, to)
+		.first<{ count: number; print: string }>();
+	return row ?? { count: 0, print: "" };
+}
+
 export async function getTrendRows(db: D1Database, from: string, to: string) {
 	const { results } = await db
 		.prepare(

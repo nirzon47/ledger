@@ -48,9 +48,13 @@ export function AiSummaryCard({ query }: Props) {
 						<div className="h-3 w-4/5 animate-pulse rounded bg-muted" />
 						<div className="h-3 w-2/3 animate-pulse rounded bg-muted" />
 					</div>
-				) : isError || !data ? (
+				) : isError ? (
 					<p className="text-muted-foreground">
 						Couldn't write a summary right now.
+					</p>
+				) : !data ? (
+					<p className="text-muted-foreground">
+						No entries yet, so nothing to summarise.
 					</p>
 				) : (
 					lines.map((line) => {
