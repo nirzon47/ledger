@@ -304,13 +304,15 @@ const app = new Hono<{ Bindings: Env }>()
 	})
 	.get("/suggestions", async (c) => {
 		const { results } = await c.env.DB.prepare(
-			`SELECT description, type, category_id, account_id FROM (
+			`SELECT trim(description) AS description, type, category_id, account_id,
+				uses
+			FROM (
 				SELECT description, type, category_id, account_id,
 					ROW_NUMBER() OVER latest AS rn,
-					COUNT(*) OVER (PARTITION BY type, lower(description)) AS uses
+					COUNT(*) OVER (PARTITION BY type, lower(trim(description))) AS uses
 				FROM transactions
 				WINDOW latest AS (
-					PARTITION BY type, lower(description) ORDER BY date DESC, id DESC
+					PARTITION BY type, lower(trim(description)) ORDER BY date DESC, id DESC
 				)
 			)
 			WHERE rn = 1

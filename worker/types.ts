@@ -86,6 +86,7 @@ export type Suggestion = {
 	type: "expense" | "income";
 	category_id: number;
 	account_id: number | null;
+	uses: number;
 };
 
 export type Transaction = {

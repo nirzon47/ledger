@@ -126,7 +126,9 @@ export function TransactionForm({ initial, preset, onSaved }: Props) {
 					<DescriptionInput
 						id="description"
 						value={description}
-						suggestions={typeSuggestions.map((s) => s.description)}
+						suggestions={typeSuggestions
+							.filter((s) => s.uses > 3)
+							.map((s) => s.description)}
 						onChange={changeDescription}
 					/>
 				</Field>
