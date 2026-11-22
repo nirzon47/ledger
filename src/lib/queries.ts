@@ -110,6 +110,9 @@ export function ensureMonth(month: string) {
 		queryClient.ensureQueryData({ ...queries.summary(month), ...instant }),
 		queryClient.ensureQueryData({ ...queries.due(month), ...instant }),
 		queryClient.ensureQueryData({ ...queries.insights(month), ...instant }),
+		queryClient.ensureQueryData({ ...queries.plan, ...instant }),
+		queryClient.ensureQueryData({ ...queries.goals, ...instant }),
+		queryClient.ensureQueryData({ ...queries.balanceHistory, ...instant }),
 	]);
 }
 

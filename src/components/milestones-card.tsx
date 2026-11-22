@@ -18,17 +18,10 @@ import {
 } from "@/components/ui/dialog";
 import type { Goal } from "@/lib/api";
 import { formatMoney } from "@/lib/format";
-import { monthLabel, toMonth } from "@/lib/month";
+import { monthsAway, whenLabel } from "@/lib/goals";
+import { monthLabel } from "@/lib/month";
 import { queries } from "@/lib/queries";
 import { cn } from "@/lib/utils";
-
-const relative = new Intl.RelativeTimeFormat("en-IN", { numeric: "auto" });
-
-function monthsAway(month: string) {
-	const [y, m] = month.split("-").map(Number);
-	const [cy, cm] = toMonth(new Date()).split("-").map(Number);
-	return y * 12 + m - (cy * 12 + cm);
-}
 
 export function MilestonesCard() {
 	const { data: goals } = useSuspenseQuery(queries.goals);
@@ -85,8 +78,7 @@ export function MilestonesCard() {
 													)}
 												>
 													{monthLabel(g.target_month)}
-													{!g.done &&
-														` · ${away < 0 ? "overdue" : relative.format(away, "month")}`}
+													{!g.done && ` · ${whenLabel(g.target_month)}`}
 												</span>
 											</span>
 											<span className="shrink-0 tabular-nums">

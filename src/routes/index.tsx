@@ -4,6 +4,7 @@ import { useState } from "react";
 import { AiSummaryCard } from "@/components/ai-summary-card";
 import { BudgetForm } from "@/components/budget-form";
 import { DueRecurring } from "@/components/due-recurring";
+import { GoalCheckIn } from "@/components/goal-check-in";
 import { MonthCharts } from "@/components/month-charts";
 import { MonthSwitcher } from "@/components/month-switcher";
 import { SpendLess } from "@/components/spend-less";
@@ -74,6 +75,7 @@ function MonthPage() {
 					className="col-span-2 lg:col-span-1"
 				/>
 			</div>
+			<GoalCheckIn month={month} />
 			<DueRecurring month={month} items={due} />
 			<MonthCharts summary={summary} />
 			<SpendLess insights={insights} />

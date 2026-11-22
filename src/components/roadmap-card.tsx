@@ -17,23 +17,12 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import type { Balance, PlanRow } from "@/lib/api";
+import type { PlanRow } from "@/lib/api";
 import { formatMoney } from "@/lib/format";
+import { corpusAt } from "@/lib/goals";
 import { defaultMonth, monthLabel, shiftMonth, toMonth } from "@/lib/month";
 import { queries } from "@/lib/queries";
 import { cn } from "@/lib/utils";
-
-// MF + liquid as of the end of `month`, carrying earlier figures forward
-function corpusAt(history: Balance[], month: string) {
-	const latest = { mf: 0, liquid: 0 };
-	let found = false;
-	for (const b of history) {
-		if (b.recorded_on.slice(0, 7) > month) break;
-		latest[b.kind] = b.amount;
-		found = true;
-	}
-	return found ? latest.mf + latest.liquid : null;
-}
 
 export function RoadmapCard() {
 	const { data: plan } = useSuspenseQuery(queries.plan);
