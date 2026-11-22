@@ -81,7 +81,7 @@ const app = new Hono<{ Bindings: Env }>()
 	)
 	.get("/categories", async (c) => {
 		const { results } = await c.env.DB.prepare(
-			"SELECT id, name, type FROM categories ORDER BY id",
+			"SELECT id, name, type, fixed FROM categories ORDER BY id",
 		).all<Category>();
 		return c.json(results);
 	})
@@ -91,8 +91,12 @@ const app = new Hono<{ Bindings: Env }>()
 		return write(
 			c,
 			c.env.DB.prepare(
-				"INSERT INTO categories (name, type) VALUES (?, ?) RETURNING id",
-			).bind(input.data.name, input.data.type),
+				"INSERT INTO categories (name, type, fixed) VALUES (?, ?, ?) RETURNING id",
+			).bind(
+				input.data.name,
+				input.data.type,
+				Number(input.data.fixed ?? false),
+			),
 			201,
 		);
 	})
@@ -102,8 +106,12 @@ const app = new Hono<{ Bindings: Env }>()
 		return write(
 			c,
 			c.env.DB.prepare(
-				"UPDATE categories SET name = ? WHERE id = ? RETURNING id",
-			).bind(input.data.name, Number(c.req.param("id"))),
+				"UPDATE categories SET name = ?, fixed = COALESCE(?, fixed) WHERE id = ? RETURNING id",
+			).bind(
+				input.data.name,
+				input.data.fixed === undefined ? null : Number(input.data.fixed),
+				Number(c.req.param("id")),
+			),
 		);
 	})
 	.delete("/categories/:id{[0-9]+}", (c) =>

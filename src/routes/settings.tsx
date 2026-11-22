@@ -1,6 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { PlusIcon } from "lucide-react";
+import { LockIcon, PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { AccountForm } from "@/components/account-form";
 import { CategoryForm } from "@/components/category-form";
@@ -115,6 +115,7 @@ function Settings() {
 												/>
 											}
 										>
+											{c.fixed ? <LockIcon aria-label="Fixed" /> : null}
 											{c.name}
 										</Badge>
 									))}

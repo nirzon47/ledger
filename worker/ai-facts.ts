@@ -107,7 +107,7 @@ export async function monthFacts(db: D1Database, month: string) {
 export async function trendsFacts(db: D1Database, from: string, to: string) {
 	const [rows, categories] = await Promise.all([
 		getTrendRows(db, from, to),
-		db.prepare("SELECT id, name, type FROM categories").all<Category>(),
+		db.prepare("SELECT id, name, type, fixed FROM categories").all<Category>(),
 	]);
 	const open = shiftMonth(today().month, 1);
 	const sum = (match: (r: (typeof rows)[number]) => boolean) =>

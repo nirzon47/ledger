@@ -1,5 +1,6 @@
 import { TriangleAlertIcon } from "lucide-react";
 import type { ReactNode } from "react";
+import { FixedFlexible } from "@/components/fixed-flexible";
 import { PaceChart } from "@/components/pace-chart";
 import { SpendDonut } from "@/components/spend-donut";
 import {
@@ -30,7 +31,17 @@ export function MonthCharts({ month, summary }: Props) {
 			<ChartCard title="Spend split" description="Every category this month">
 				<SpendDonut categories={summary.categories} />
 			</ChartCard>
-			<ChartCard title="Planned vs actual" description="Expense categories">
+			<ChartCard
+				title="Fixed vs flexible"
+				description="How much of this month you could actually cut"
+			>
+				<FixedFlexible categories={summary.categories} />
+			</ChartCard>
+			<ChartCard
+				title="Planned vs actual"
+				description="Expense categories"
+				className="lg:col-span-2"
+			>
 				{planned.length === 0 ? (
 					<Empty>
 						Set a planned amount on any category in the Expenses table to track

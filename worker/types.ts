@@ -9,6 +9,7 @@ export type Category = {
 	id: number;
 	name: string;
 	type: "expense" | "income";
+	fixed: 0 | 1;
 };
 
 export type CategoryTotal = Category & { planned: number; actual: number };

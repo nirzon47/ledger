@@ -33,9 +33,10 @@ export type AccountInput = z.infer<typeof accountInput>;
 export const categoryInput = z.object({
 	name: z.string().trim().min(1).max(50),
 	type: z.enum(["expense", "income"]),
+	fixed: z.boolean().optional(),
 });
 
-export const categoryRename = categoryInput.pick({ name: true });
+export const categoryRename = categoryInput.pick({ name: true, fixed: true });
 
 export type CategoryInput = z.infer<typeof categoryInput>;
 
