@@ -52,6 +52,11 @@ export function monthsEnding(end: string, count: number) {
 	);
 }
 
+export function daysInMonth(month: string) {
+	const [y, m] = month.split("-").map(Number);
+	return new Date(y, m, 0).getDate();
+}
+
 export function monthInitial(month: string) {
 	const [y, m] = month.split("-").map(Number);
 	return new Date(y, m - 1, 1).toLocaleDateString("en-IN", { month: "narrow" });

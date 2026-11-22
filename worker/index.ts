@@ -3,7 +3,13 @@ import { z } from "zod";
 import { requireAccess } from "./access";
 import { aiResponse, cachedSummary } from "./ai";
 import { monthFacts, trendsFacts } from "./ai-facts";
-import { fingerprint, getInsights, getSummary, getTrendRows } from "./data";
+import {
+	fingerprint,
+	getInsights,
+	getPace,
+	getSummary,
+	getTrendRows,
+} from "./data";
 import { isMonth } from "./month";
 import {
 	accountInput,
@@ -131,6 +137,11 @@ const app = new Hono<{ Bindings: Env }>()
 			return c.json({ error: "from and to must be YYYY-MM" }, 400);
 		}
 		return c.json(await getTrendRows(c.env.DB, from, to));
+	})
+	.get("/pace", async (c) => {
+		const month = c.req.query("month");
+		if (!isMonth(month)) return c.json({ error: "month must be YYYY-MM" }, 400);
+		return c.json(await getPace(c.env.DB, month));
 	})
 	.get("/insights", async (c) => {
 		const month = c.req.query("month");

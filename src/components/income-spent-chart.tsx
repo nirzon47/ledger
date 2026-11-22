@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { niceMax } from "@/lib/chart";
 import { formatCompact, formatMoney } from "@/lib/format";
 import { monthLabel, shortMonth } from "@/lib/month";
 import { cn } from "@/lib/utils";
@@ -9,13 +10,6 @@ const series = [
 	{ key: "income", label: "Income", color: "#3987e5" },
 	{ key: "spent", label: "Spent", color: "#d95926" },
 ] as const;
-
-function niceMax(value: number) {
-	if (value <= 0) return 100;
-	const step = 10 ** Math.floor(Math.log10(value));
-	const f = value / step;
-	return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * step;
-}
 
 export function IncomeSpentChart({ data }: { data: MonthTotals[] }) {
 	const [active, setActive] = useState<number | null>(null);

@@ -77,7 +77,7 @@ function MonthPage() {
 			</div>
 			<GoalCheckIn month={month} />
 			<DueRecurring month={month} items={due} />
-			<MonthCharts summary={summary} />
+			<MonthCharts month={month} summary={summary} />
 			<SpendLess insights={insights} />
 			<div className="grid gap-4 lg:grid-cols-2">
 				{(["expense", "income"] as const).map((type) => (

@@ -1,8 +1,11 @@
+import { shiftMonth } from "./month";
 import type {
 	AccountSpend,
 	Category,
 	CategoryTotal,
+	DayTotal,
 	Insights,
+	Pace,
 	Summary,
 	TrendRow,
 } from "./types";
@@ -51,6 +54,28 @@ export async function getSummary(db: D1Database, month: string) {
 		categories: totals.results,
 		accounts: accounts.results,
 	} satisfies Summary;
+}
+
+// daily expense totals for a budget month, counting only spends dated in its card cycle
+export async function getPace(db: D1Database, month: string) {
+	const days = (budget: string) =>
+		db
+			.prepare(
+				`SELECT CAST(substr(date, 9, 2) AS INTEGER) AS day, SUM(amount) AS total
+				FROM transactions
+				WHERE budget_month = ? AND type = 'expense' AND substr(date, 1, 7) = ?
+				GROUP BY day ORDER BY day`,
+			)
+			.bind(budget, shiftMonth(budget, -1))
+			.all<DayTotal>();
+	const [current, previous] = await Promise.all([
+		days(month),
+		days(shiftMonth(month, -1)),
+	]);
+	return {
+		current: current.results,
+		previous: previous.results,
+	} satisfies Pace;
 }
 
 // cheap signature of the transactions in a range; changes when entries are added, removed or edited

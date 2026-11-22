@@ -1,5 +1,6 @@
 import { TriangleAlertIcon } from "lucide-react";
 import type { ReactNode } from "react";
+import { PaceChart } from "@/components/pace-chart";
 import { SpendDonut } from "@/components/spend-donut";
 import {
 	Card,
@@ -11,12 +12,21 @@ import {
 import type { Summary } from "@/lib/api";
 import { formatMoney } from "@/lib/format";
 
-export function MonthCharts({ summary }: { summary: Summary }) {
+type Props = { month: string; summary: Summary };
+
+export function MonthCharts({ month, summary }: Props) {
 	const expenses = summary.categories.filter((c) => c.type === "expense");
 	const planned = expenses.filter((c) => c.planned > 0);
 
 	return (
 		<div className="grid gap-4 lg:grid-cols-2">
+			<ChartCard
+				title="Spending pace"
+				description="Card-cycle spends, this cycle against the last"
+				className="lg:col-span-2"
+			>
+				<PaceChart month={month} />
+			</ChartCard>
 			<ChartCard title="Spend split" description="Every category this month">
 				<SpendDonut categories={summary.categories} />
 			</ChartCard>
@@ -46,12 +56,18 @@ export function MonthCharts({ summary }: { summary: Summary }) {
 type ChartCardProps = {
 	title: string;
 	description: string;
+	className?: string;
 	children: ReactNode;
 };
 
-function ChartCard({ title, description, children }: ChartCardProps) {
+function ChartCard({
+	title,
+	description,
+	className,
+	children,
+}: ChartCardProps) {
 	return (
-		<Card>
+		<Card className={className}>
 			<CardHeader>
 				<CardTitle>{title}</CardTitle>
 				<CardDescription>{description}</CardDescription>

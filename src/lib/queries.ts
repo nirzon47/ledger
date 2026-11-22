@@ -11,6 +11,7 @@ import {
 	type Category,
 	type Goal,
 	type Insights,
+	type Pace,
 	type PlanRow,
 	type Recurring,
 	type Suggestion,
@@ -73,6 +74,11 @@ export const queries = {
 					? api<Recurring[]>(`/recurring/due?month=${month}`)
 					: Promise.resolve([]),
 		}),
+	pace: (month: string) =>
+		queryOptions({
+			queryKey: ["pace", month],
+			queryFn: () => api<Pace>(`/pace?month=${month}`),
+		}),
 	insights: (month: string) =>
 		queryOptions({
 			queryKey: ["insights", month],
@@ -110,6 +116,7 @@ export function ensureMonth(month: string) {
 		queryClient.ensureQueryData({ ...queries.summary(month), ...instant }),
 		queryClient.ensureQueryData({ ...queries.due(month), ...instant }),
 		queryClient.ensureQueryData({ ...queries.insights(month), ...instant }),
+		queryClient.ensureQueryData({ ...queries.pace(month), ...instant }),
 		queryClient.ensureQueryData({ ...queries.plan, ...instant }),
 		queryClient.ensureQueryData({ ...queries.goals, ...instant }),
 		queryClient.ensureQueryData({ ...queries.balanceHistory, ...instant }),
@@ -121,6 +128,7 @@ export function prefetchMonth(month: string) {
 		queryClient.prefetchQuery(queries.summary(month)),
 		queryClient.prefetchQuery(queries.due(month)),
 		queryClient.prefetchQuery(queries.insights(month)),
+		queryClient.prefetchQuery(queries.pace(month)),
 	]);
 }
 

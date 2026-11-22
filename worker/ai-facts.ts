@@ -1,16 +1,11 @@
 import { getInsights, getSummary, getTrendRows } from "./data";
+import { shiftMonth } from "./month";
 import type { Category } from "./types";
 
 const rupees = (paise: number) =>
 	`₹${Math.round(paise / 100).toLocaleString("en-IN")}`;
 
 const key = (y: number, m: number) => `${y}-${String(m).padStart(2, "0")}`;
-
-function shift(month: string, by: number) {
-	const [y, m] = month.split("-").map(Number);
-	const d = new Date(Date.UTC(y, m - 1 + by, 1));
-	return key(d.getUTCFullYear(), d.getUTCMonth() + 1);
-}
 
 // the Worker runs in UTC; budgeting happens in IST
 function today() {
@@ -73,7 +68,7 @@ export async function monthFacts(db: D1Database, month: string) {
 	]);
 
 	const t = today();
-	const cycle = shift(month, -1);
+	const cycle = shiftMonth(month, -1);
 	const progress = t.month > cycle ? 1 : t.month < cycle ? 0 : t.day / t.days;
 	const card = split?.card ?? 0;
 	const other = split?.other ?? 0;
@@ -114,7 +109,7 @@ export async function trendsFacts(db: D1Database, from: string, to: string) {
 		getTrendRows(db, from, to),
 		db.prepare("SELECT id, name, type FROM categories").all<Category>(),
 	]);
-	const open = shift(today().month, 1);
+	const open = shiftMonth(today().month, 1);
 	const sum = (match: (r: (typeof rows)[number]) => boolean) =>
 		rows.filter(match).reduce((total, r) => total + r.total, 0);
 	const months = [...new Set(rows.map((r) => r.month))].sort();

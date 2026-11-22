@@ -26,6 +26,10 @@ export type Summary = {
 
 export type AiSummary = { content: string; generated_at: string };
 
+export type DayTotal = { day: number; total: number };
+
+export type Pace = { current: DayTotal[]; previous: DayTotal[] };
+
 export type PlanRow = {
 	month: string;
 	savings: number;
