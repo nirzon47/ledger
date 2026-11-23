@@ -1,4 +1,5 @@
 import { type FormEvent, useState } from "react";
+import { AmountInput } from "@/components/amount-input";
 import { FormActions, MonthStepper, Segmented } from "@/components/form-parts";
 import {
 	Field,
@@ -9,6 +10,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { api, type Goal, type GoalInput } from "@/lib/api";
+import { toPaise } from "@/lib/calc";
 import { confirmWithHaptic } from "@/lib/haptics";
 import { defaultMonth } from "@/lib/month";
 import { useSave } from "@/lib/use-save";
@@ -33,9 +35,11 @@ export function GoalForm({ initial, onDone }: Props) {
 
 	function submit(event: FormEvent) {
 		event.preventDefault();
+		const paise = toPaise(amount);
+		if (paise === null) return;
 		const body: GoalInput = {
 			name,
-			amount: Math.round(Number(amount) * 100),
+			amount: paise,
 			target_month: month,
 			done: state === "done",
 		};
@@ -69,15 +73,11 @@ export function GoalForm({ initial, onDone }: Props) {
 				</Field>
 				<Field>
 					<FieldLabel htmlFor="goal-amount">Amount (₹)</FieldLabel>
-					<Input
+					<AmountInput
 						id="goal-amount"
-						type="number"
-						inputMode="decimal"
-						step="0.01"
-						min="0.01"
-						required
 						value={amount}
-						onChange={(e) => setAmount(e.target.value)}
+						onChange={setAmount}
+						required
 					/>
 				</Field>
 				<Field>

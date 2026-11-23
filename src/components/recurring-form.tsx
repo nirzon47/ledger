@@ -1,4 +1,5 @@
 import { type FormEvent, useState } from "react";
+import { AmountInput } from "@/components/amount-input";
 import {
 	CategoryAccountFields,
 	FormActions,
@@ -13,6 +14,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { api, type Recurring, type RecurringInput } from "@/lib/api";
+import { toPaise } from "@/lib/calc";
 import { confirmWithHaptic } from "@/lib/haptics";
 import { useSave } from "@/lib/use-save";
 
@@ -37,10 +39,12 @@ export function RecurringForm({ initial, onDone }: Props) {
 
 	function submit(event: FormEvent) {
 		event.preventDefault();
+		const paise = toPaise(amount);
+		if (paise === null) return;
 		const body: RecurringInput = {
 			type,
 			description,
-			amount: Math.round(Number(amount) * 100),
+			amount: paise,
 			day: Number(day),
 			category_id: Number(categoryId),
 			account_id: accountId ? Number(accountId) : null,
@@ -82,15 +86,11 @@ export function RecurringForm({ initial, onDone }: Props) {
 				<div className="grid grid-cols-2 gap-3">
 					<Field>
 						<FieldLabel htmlFor="recurring-amount">Amount (₹)</FieldLabel>
-						<Input
+						<AmountInput
 							id="recurring-amount"
-							type="number"
-							inputMode="decimal"
-							step="0.01"
-							min="0.01"
-							required
 							value={amount}
-							onChange={(e) => setAmount(e.target.value)}
+							onChange={setAmount}
+							required
 						/>
 					</Field>
 					<Field>

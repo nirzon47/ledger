@@ -1,4 +1,5 @@
 import { type FormEvent, useState } from "react";
+import { AmountInput } from "@/components/amount-input";
 import { DescriptionInput } from "@/components/description-input";
 import {
 	CategoryAccountFields,
@@ -16,6 +17,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { api, type Transaction, type TransactionInput } from "@/lib/api";
+import { toPaise } from "@/lib/calc";
 import { confirmWithHaptic } from "@/lib/haptics";
 import { budgetMonthFor, today } from "@/lib/month";
 import { useLists } from "@/lib/queries";
@@ -63,11 +65,13 @@ export function TransactionForm({ initial, preset, onSaved }: Props) {
 
 	function submit(event: FormEvent) {
 		event.preventDefault();
+		const paise = toPaise(amount);
+		if (paise === null) return;
 		const body: TransactionInput = {
 			type,
 			date,
 			budget_month: budgetMonth,
-			amount: Math.round(Number(amount) * 100),
+			amount: paise,
 			description,
 			category_id: Number(categoryId),
 			account_id: accountId ? Number(accountId) : null,
@@ -100,14 +104,11 @@ export function TransactionForm({ initial, preset, onSaved }: Props) {
 				<div className="grid grid-cols-2 gap-3">
 					<Field>
 						<FieldLabel htmlFor="amount">Amount (₹)</FieldLabel>
-						<Input
+						<AmountInput
 							id="amount"
-							type="number"
-							inputMode="decimal"
-							step="0.01"
-							required
 							value={amount}
-							onChange={(e) => setAmount(e.target.value)}
+							onChange={setAmount}
+							required
 						/>
 					</Field>
 					<Field>

@@ -1,4 +1,5 @@
 import { type FormEvent, useState } from "react";
+import { AmountInput } from "@/components/amount-input";
 import { FormActions } from "@/components/form-parts";
 import {
 	Field,
@@ -7,8 +8,8 @@ import {
 	FieldGroup,
 	FieldLabel,
 } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 import { api, type Balance, type BalanceInput } from "@/lib/api";
+import { toPaise } from "@/lib/calc";
 import { today } from "@/lib/month";
 import { useSave } from "@/lib/use-save";
 
@@ -20,7 +21,7 @@ const rupees = (balances: Balance[], kind: Balance["kind"]) => {
 };
 
 const paise = (value: string) =>
-	value === "" ? undefined : Math.round(Number(value) * 100);
+	value.trim() === "" ? undefined : toPaise(value);
 
 export function BalanceForm({ current, onDone }: Props) {
 	const { run, saving, error } = useSave(onDone);
@@ -29,10 +30,13 @@ export function BalanceForm({ current, onDone }: Props) {
 
 	function submit(event: FormEvent) {
 		event.preventDefault();
+		const mfPaise = paise(mf);
+		const liquidPaise = paise(liquid);
+		if (mfPaise === null || liquidPaise === null) return;
 		const body: BalanceInput = {
 			recorded_on: today(),
-			mf: paise(mf),
-			liquid: paise(liquid),
+			mf: mfPaise,
+			liquid: liquidPaise,
 		};
 		run(() => api("/balances", { method: "POST", body }));
 	}
@@ -43,27 +47,11 @@ export function BalanceForm({ current, onDone }: Props) {
 				<div className="grid grid-cols-2 gap-3">
 					<Field>
 						<FieldLabel htmlFor="mf">MF principal (₹)</FieldLabel>
-						<Input
-							id="mf"
-							type="number"
-							inputMode="decimal"
-							step="0.01"
-							min="0"
-							value={mf}
-							onChange={(e) => setMf(e.target.value)}
-						/>
+						<AmountInput id="mf" value={mf} onChange={setMf} />
 					</Field>
 					<Field>
 						<FieldLabel htmlFor="liquid">Liquid savings (₹)</FieldLabel>
-						<Input
-							id="liquid"
-							type="number"
-							inputMode="decimal"
-							step="0.01"
-							min="0"
-							value={liquid}
-							onChange={(e) => setLiquid(e.target.value)}
-						/>
+						<AmountInput id="liquid" value={liquid} onChange={setLiquid} />
 					</Field>
 				</div>
 				<FieldDescription>

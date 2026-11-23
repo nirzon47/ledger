@@ -1,4 +1,5 @@
 import { type FormEvent, useState } from "react";
+import { AmountInput } from "@/components/amount-input";
 import { FormActions, MonthStepper } from "@/components/form-parts";
 import {
 	Field,
@@ -8,9 +9,9 @@ import {
 	FieldLabel,
 	FieldTitle,
 } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { api, type PlanInput, type PlanRow } from "@/lib/api";
+import { toPaise } from "@/lib/calc";
 import { confirmWithHaptic } from "@/lib/haptics";
 import { monthLabel } from "@/lib/month";
 import { useSave } from "@/lib/use-save";
@@ -24,7 +25,7 @@ type Props = {
 
 const rupees = (paise?: number | null) =>
 	paise == null ? "" : String(paise / 100);
-const paise = (value: string) => Math.round(Number(value || 0) * 100);
+const paise = (value: string) => toPaise(value || "0");
 
 export function PlanForm({ initial, suggestedMonth, taken, onDone }: Props) {
 	const { run, saving, error } = useSave(onDone);
@@ -37,11 +38,15 @@ export function PlanForm({ initial, suggestedMonth, taken, onDone }: Props) {
 
 	function submit(event: FormEvent) {
 		event.preventDefault();
+		const [s, c, l] = [savings, capex, loan].map(paise);
+		const target = corpus.trim() === "" ? null : paise(corpus);
+		if (s === null || c === null || l === null) return;
+		if (corpus.trim() !== "" && target === null) return;
 		const body: PlanInput = {
-			savings: paise(savings),
-			capex: paise(capex),
-			loan: paise(loan),
-			corpus: corpus === "" ? null : paise(corpus),
+			savings: s,
+			capex: c,
+			loan: l,
+			corpus: target,
 			note,
 		};
 		run(() => api(`/plan/${month}`, { method: "PUT", body }));
@@ -118,15 +123,7 @@ function Money({ id, label, value, onChange }: MoneyProps) {
 	return (
 		<Field>
 			<FieldLabel htmlFor={id}>{label} (₹)</FieldLabel>
-			<Input
-				id={id}
-				type="number"
-				inputMode="decimal"
-				step="0.01"
-				min="0"
-				value={value}
-				onChange={(e) => onChange(e.target.value)}
-			/>
+			<AmountInput id={id} value={value} onChange={onChange} />
 		</Field>
 	);
 }
