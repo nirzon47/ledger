@@ -1,3 +1,5 @@
+import { isHidden, MASK } from "./privacy";
+
 const money = new Intl.NumberFormat("en-IN", {
 	style: "currency",
 	currency: "INR",
@@ -5,7 +7,8 @@ const money = new Intl.NumberFormat("en-IN", {
 	maximumFractionDigits: 2,
 });
 
-export const formatMoney = (paise: number) => money.format(paise / 100);
+export const formatMoney = (paise: number, reveal = false) =>
+	isHidden() && !reveal ? MASK : money.format(paise / 100);
 
 const compact = new Intl.NumberFormat("en-IN", {
 	style: "currency",
@@ -14,7 +17,8 @@ const compact = new Intl.NumberFormat("en-IN", {
 	maximumFractionDigits: 1,
 });
 
-export const formatCompact = (paise: number) => compact.format(paise / 100);
+export const formatCompact = (paise: number) =>
+	isHidden() ? "₹••" : compact.format(paise / 100);
 
 const relative = new Intl.RelativeTimeFormat("en-IN", { numeric: "auto" });
 

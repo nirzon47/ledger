@@ -72,7 +72,7 @@ export function AmountInput({ id, value, onChange, required }: Props) {
 						<span className="truncate text-xs text-muted-foreground tabular-nums">
 							{invalid
 								? "Can't calculate that"
-								: `= ${formatMoney(Math.round((result ?? 0) * 100))}`}
+								: `= ${formatMoney(Math.round((result ?? 0) * 100), true)}`}
 						</span>
 					)}
 				</div>

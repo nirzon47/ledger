@@ -2,6 +2,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { CheckIcon, PlusIcon, TriangleAlertIcon } from "lucide-react";
 import { useState } from "react";
 import { PlanForm } from "@/components/plan-form";
+import { PrivateText } from "@/components/private-text";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -142,7 +143,11 @@ function Month({ row, now, corpus, onEdit }: MonthProps) {
 					) : null}
 				</span>
 			</div>
-			{row.note && <p className="text-xs text-muted-foreground">{row.note}</p>}
+			{row.note && (
+				<p className="text-xs text-muted-foreground">
+					<PrivateText>{row.note}</PrivateText>
+				</p>
+			)}
 			<dl className="grid grid-cols-[auto_1fr] gap-x-3 text-xs tabular-nums">
 				<dt className="text-muted-foreground">Savings</dt>
 				<dd>

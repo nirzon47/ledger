@@ -1,5 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { TargetIcon } from "lucide-react";
+import { PrivateText } from "@/components/private-text";
 import {
 	Card,
 	CardContent,
@@ -37,7 +38,11 @@ export function GoalCheckIn({ month }: { month: string }) {
 					<TargetIcon className="size-4 text-chart-2" />
 					Goal check-in
 				</CardTitle>
-				{row?.note && <CardDescription>{row.note}</CardDescription>}
+				{row?.note && (
+					<CardDescription>
+						<PrivateText>{row.note}</PrivateText>
+					</CardDescription>
+				)}
 			</CardHeader>
 			<CardContent className="space-y-4 text-sm">
 				{row && (

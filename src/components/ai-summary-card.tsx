@@ -1,5 +1,6 @@
 import { type UseQueryOptions, useQuery } from "@tanstack/react-query";
 import { SparklesIcon } from "lucide-react";
+import { PrivateText } from "@/components/private-text";
 import {
 	Card,
 	CardContent,
@@ -62,7 +63,7 @@ export function AiSummaryCard({ query }: Props) {
 						return (
 							<p key={line}>
 								{label && <span className="font-semibold">{label}: </span>}
-								{line.replace(LABEL, "")}
+								<PrivateText>{line.replace(LABEL, "")}</PrivateText>
 							</p>
 						);
 					})

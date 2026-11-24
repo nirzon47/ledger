@@ -3,6 +3,7 @@ import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { enableTapHaptics } from "./lib/haptics";
+import { enablePrivacy } from "./lib/privacy";
 import { preloadApp, queryClient } from "./lib/queries";
 import { routeTree } from "./routeTree.gen";
 import "./styles.css";
@@ -15,6 +16,7 @@ const router = createRouter({
 });
 
 enableTapHaptics();
+enablePrivacy();
 
 declare module "@tanstack/react-router" {
 	interface Register {
