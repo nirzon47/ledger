@@ -16,7 +16,10 @@ import { useSave } from "@/lib/use-save";
 const kinds = [
 	{ value: "flexible", label: "Flexible" },
 	{ value: "fixed", label: "Fixed" },
+	{ value: "savings", label: "Savings" },
 ] as const;
+
+type Kind = (typeof kinds)[number]["value"];
 
 type Props = {
 	type: CategoryInput["type"];
@@ -27,22 +30,24 @@ type Props = {
 export function CategoryForm({ type, initial, onDone }: Props) {
 	const { run, saving, error } = useSave(onDone);
 	const [name, setName] = useState(initial?.name ?? "");
-	const [kind, setKind] = useState<"flexible" | "fixed">(
-		initial?.fixed ? "fixed" : "flexible",
+	const [kind, setKind] = useState<Kind>(
+		initial?.savings ? "savings" : initial?.fixed ? "fixed" : "flexible",
 	);
 
 	function submit(event: FormEvent) {
 		event.preventDefault();
-		const fixed = type === "expense" ? kind === "fixed" : undefined;
+		const expense = type === "expense";
+		const fixed = expense ? kind !== "flexible" : undefined;
+		const savings = expense ? kind === "savings" : undefined;
 		run(() =>
 			initial
 				? api(`/categories/${initial.id}`, {
 						method: "PUT",
-						body: { name, fixed },
+						body: { name, fixed, savings },
 					})
 				: api("/categories", {
 						method: "POST",
-						body: { name, type, fixed } satisfies CategoryInput,
+						body: { name, type, fixed, savings } satisfies CategoryInput,
 					}),
 		);
 	}
@@ -70,8 +75,9 @@ export function CategoryForm({ type, initial, onDone }: Props) {
 						<FieldTitle>Kind</FieldTitle>
 						<Segmented value={kind} options={kinds} onChange={setKind} />
 						<FieldDescription>
-							Fixed is what you're committed to, like EMIs, savings or bills.
-							Flexible is what you could cut back on.
+							Flexible is what you could cut back on. Fixed is committed, like
+							EMIs or bills. Savings is money set aside, and counts toward your
+							roadmap and corpus.
 						</FieldDescription>
 					</Field>
 				)}

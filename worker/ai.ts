@@ -7,7 +7,7 @@ const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 const SYSTEM = `You analyse one person's spending for their private budgeting app.
 Reply with exactly these four lines, each starting with its label:
 Overview: how the month or period is going, quoting the key numbers.
-Unnecessary: specific spends that look avoidable or excessive, such as frequent small orders, overlapping subscriptions or impulse buys. Never call savings, investments, EMIs, rent, bills or medical costs unnecessary. If nothing stands out, say so.
+Unnecessary: specific spends that look avoidable or excessive, such as frequent small orders, overlapping subscriptions or impulse buys. Never call savings (categories marked "(savings)"), investments, EMIs, rent, bills or medical costs unnecessary. If nothing stands out, say so.
 Projection: where things are heading, using only the projection figures given. For a month that is already over, say instead how it ended compared with plan and the usual.
 Ideas: one or two specific, practical suggestions, such as a budget to set, a subscription to review or a habit to change.
 Each line is one or two short sentences. Plain text only: no markdown, bullets or greetings.

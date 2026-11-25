@@ -87,7 +87,7 @@ export async function monthFacts(db: D1Database, month: string) {
 			.filter((c) => c.type === "expense" && c.actual)
 			.map(
 				(c) =>
-					`${c.name} ${rupees(c.actual)}${c.planned ? ` of ${rupees(c.planned)} planned` : ""}`,
+					`${c.name}${c.savings ? " (savings)" : ""} ${rupees(c.actual)}${c.planned ? ` of ${rupees(c.planned)} planned` : ""}`,
 			)
 			.join("; ")}.`,
 		insights.above_usual.length
@@ -107,7 +107,9 @@ export async function monthFacts(db: D1Database, month: string) {
 export async function trendsFacts(db: D1Database, from: string, to: string) {
 	const [rows, categories] = await Promise.all([
 		getTrendRows(db, from, to),
-		db.prepare("SELECT id, name, type, fixed FROM categories").all<Category>(),
+		db
+			.prepare("SELECT id, name, type, fixed, savings FROM categories")
+			.all<Category>(),
 	]);
 	const open = shiftMonth(today().month, 1);
 	const sum = (match: (r: (typeof rows)[number]) => boolean) =>
@@ -155,7 +157,10 @@ export async function trendsFacts(db: D1Database, from: string, to: string) {
 			? `Rising categories (monthly average, last 3 complete months vs the 3 before): ${rising.map((c) => `${c.name} ${rupees(c.now)} vs ${rupees(c.before)}`).join("; ")}.`
 			: "No category is rising compared with the 3 months before.",
 		`Spend by category over the period: ${expense
-			.map((c) => ({ name: c.name, total: sum((r) => r.category_id === c.id) }))
+			.map((c) => ({
+				name: c.savings ? `${c.name} (savings)` : c.name,
+				total: sum((r) => r.category_id === c.id),
+			}))
 			.filter((c) => c.total > 0)
 			.sort((a, b) => b.total - a.total)
 			.map((c) => `${c.name} ${rupees(c.total)}`)

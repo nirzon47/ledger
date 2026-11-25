@@ -81,7 +81,7 @@ const app = new Hono<{ Bindings: Env }>()
 	)
 	.get("/categories", async (c) => {
 		const { results } = await c.env.DB.prepare(
-			"SELECT id, name, type, fixed FROM categories ORDER BY id",
+			"SELECT id, name, type, fixed, savings FROM categories ORDER BY id",
 		).all<Category>();
 		return c.json(results);
 	})
@@ -91,11 +91,12 @@ const app = new Hono<{ Bindings: Env }>()
 		return write(
 			c,
 			c.env.DB.prepare(
-				"INSERT INTO categories (name, type, fixed) VALUES (?, ?, ?) RETURNING id",
+				"INSERT INTO categories (name, type, fixed, savings) VALUES (?, ?, ?, ?) RETURNING id",
 			).bind(
 				input.data.name,
 				input.data.type,
 				Number(input.data.fixed ?? false),
+				Number(input.data.savings ?? false),
 			),
 			201,
 		);
@@ -106,10 +107,13 @@ const app = new Hono<{ Bindings: Env }>()
 		return write(
 			c,
 			c.env.DB.prepare(
-				"UPDATE categories SET name = ?, fixed = COALESCE(?, fixed) WHERE id = ? RETURNING id",
+				`UPDATE categories SET name = ?, fixed = COALESCE(?, fixed),
+					savings = COALESCE(?, savings)
+				WHERE id = ? RETURNING id`,
 			).bind(
 				input.data.name,
 				input.data.fixed === undefined ? null : Number(input.data.fixed),
+				input.data.savings === undefined ? null : Number(input.data.savings),
 				Number(c.req.param("id")),
 			),
 		);
@@ -188,7 +192,7 @@ const app = new Hono<{ Bindings: Env }>()
 					SELECT COALESCE(SUM(t.amount), 0) FROM transactions t
 					JOIN categories c ON c.id = t.category_id
 					WHERE t.budget_month = p.month AND t.type = 'expense'
-						AND c.name = 'Savings / Investments'
+						AND c.savings = 1
 				) AS saved
 			FROM plan p ORDER BY p.month`,
 		).all<PlanRow>();

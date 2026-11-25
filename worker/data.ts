@@ -14,7 +14,7 @@ export async function getSummary(db: D1Database, month: string) {
 	const [totals, accounts] = await Promise.all([
 		db
 			.prepare(
-				`SELECT c.id, c.name, c.type, c.fixed,
+				`SELECT c.id, c.name, c.type, c.fixed, c.savings,
 					COALESCE((
 						SELECT b.planned FROM budgets b
 						WHERE b.category_id = c.id AND b.month <= ?1
