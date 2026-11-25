@@ -5,6 +5,7 @@ import { aiResponse, cachedSummary } from "./ai";
 import { monthFacts, trendsFacts } from "./ai-facts";
 import {
 	fingerprint,
+	getCorpusEvents,
 	getInsights,
 	getPace,
 	getSummary,
@@ -17,6 +18,7 @@ import {
 	budgetInput,
 	categoryInput,
 	categoryRename,
+	corpusInput,
 	goalInput,
 	planInput,
 	type RecurringInput,
@@ -36,6 +38,9 @@ import type {
 } from "./types";
 
 type Ctx = Context<{ Bindings: Env }>;
+
+// today in IST, as YYYY-MM-DD
+const TODAY = "date('now', '+330 minutes')";
 
 const selectRecurring = `SELECT r.id, r.type, r.description, r.amount, r.day,
 		r.category_id, c.name AS category, r.account_id, a.name AS account
@@ -225,6 +230,24 @@ const app = new Hono<{ Bindings: Env }>()
 			? c.body(null, 204)
 			: c.json({ error: "Not found" }, 404);
 	})
+	.get("/corpus", async (c) => {
+		return c.json(await getCorpusEvents(c.env.DB));
+	})
+	.post("/corpus", async (c) => {
+		const input = await parseBody(c, corpusInput);
+		if ("error" in input) return c.json(input, 400);
+		const e = input.data;
+		return write(
+			c,
+			c.env.DB.prepare(
+				"INSERT INTO corpus_entries (kind, amount, date, note) VALUES (?, ?, ?, ?) RETURNING id",
+			).bind(e.kind, e.amount, e.date, e.note),
+			201,
+		);
+	})
+	.delete("/corpus/:id{[0-9]+}", (c) =>
+		remove(c, "corpus_entries", Number(c.req.param("id"))),
+	)
 	.get("/goals", async (c) => {
 		const { results } = await c.env.DB.prepare(
 			`SELECT id, name, amount, target_month, done FROM goals
@@ -239,7 +262,8 @@ const app = new Hono<{ Bindings: Env }>()
 		return write(
 			c,
 			c.env.DB.prepare(
-				"INSERT INTO goals (name, amount, target_month, done) VALUES (?, ?, ?, ?) RETURNING id",
+				`INSERT INTO goals (name, amount, target_month, done, done_on)
+				VALUES (?, ?, ?, ?, CASE WHEN ?4 = 1 THEN ${TODAY} END) RETURNING id`,
 			).bind(g.name, g.amount, g.target_month, Number(g.done)),
 			201,
 		);
@@ -251,7 +275,9 @@ const app = new Hono<{ Bindings: Env }>()
 		return write(
 			c,
 			c.env.DB.prepare(
-				"UPDATE goals SET name = ?, amount = ?, target_month = ?, done = ? WHERE id = ? RETURNING id",
+				`UPDATE goals SET name = ?1, amount = ?2, target_month = ?3, done = ?4,
+				done_on = CASE WHEN ?4 = 1 THEN COALESCE(done_on, ${TODAY}) END
+			WHERE id = ?5 RETURNING id`,
 			).bind(
 				g.name,
 				g.amount,
@@ -471,7 +497,7 @@ async function removeUnused(
 
 async function remove(
 	c: Ctx,
-	table: "transactions" | "recurring" | "goals",
+	table: "transactions" | "recurring" | "goals" | "corpus_entries",
 	id: number,
 ) {
 	const { meta } = await c.env.DB.prepare(`DELETE FROM ${table} WHERE id = ?`)

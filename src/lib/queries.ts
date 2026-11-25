@@ -9,6 +9,7 @@ import {
 	api,
 	type Balance,
 	type Category,
+	type CorpusEvent,
 	type Goal,
 	type Insights,
 	type Pace,
@@ -48,6 +49,10 @@ export const queries = {
 	balanceHistory: queryOptions({
 		queryKey: ["balances", "history"],
 		queryFn: () => api<Balance[]>("/balances/history"),
+	}),
+	corpus: queryOptions({
+		queryKey: ["corpus"],
+		queryFn: () => api<CorpusEvent[]>("/corpus"),
 	}),
 	plan: queryOptions({
 		queryKey: ["plan"],
@@ -144,6 +149,7 @@ export function preloadApp() {
 		queryClient.prefetchQuery(queries.balanceHistory),
 		queryClient.prefetchQuery(queries.goals),
 		queryClient.prefetchQuery(queries.plan),
+		queryClient.prefetchQuery(queries.corpus),
 		queryClient.prefetchQuery(queries.transactions(month)),
 		queryClient.prefetchQuery(queries.trends(months[0], month)),
 		queryClient.prefetchQuery(queries.aiTrends(months[0], month)),

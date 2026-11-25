@@ -83,6 +83,21 @@ export const planInput = z.object({
 
 export type PlanInput = z.infer<typeof planInput>;
 
+export const corpusInput = z
+	.object({
+		kind: z.enum(["set", "adjust"]),
+		amount: z.number().int(),
+		date: z.iso.date(),
+		note: z.string().trim().max(200),
+	})
+	.refine(
+		(e) => e.kind === "adjust" || e.amount >= 0,
+		"A total can't be negative",
+	)
+	.refine((e) => e.kind === "set" || e.amount !== 0, "Amount can't be zero");
+
+export type CorpusInput = z.infer<typeof corpusInput>;
+
 export const goalInput = z.object({
 	name: z.string().trim().min(1).max(100),
 	amount: z.number().int().positive(),

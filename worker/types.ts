@@ -42,6 +42,14 @@ export type PlanRow = {
 	saved: number;
 };
 
+export type CorpusEvent = {
+	id: number;
+	kind: "set" | "adjust" | "saving" | "milestone";
+	date: string;
+	amount: number;
+	label: string;
+};
+
 export type Goal = {
 	id: number;
 	name: string;

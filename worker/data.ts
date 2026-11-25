@@ -3,6 +3,7 @@ import type {
 	AccountSpend,
 	Category,
 	CategoryTotal,
+	CorpusEvent,
 	DayTotal,
 	Insights,
 	Pace,
@@ -76,6 +77,34 @@ export async function getPace(db: D1Database, month: string) {
 		current: current.results,
 		previous: previous.results,
 	} satisfies Pace;
+}
+
+// every corpus movement since the first recorded total, oldest first; a set closes its day
+export async function getCorpusEvents(db: D1Database) {
+	const start = await db
+		.prepare("SELECT MIN(date) AS date FROM corpus_entries WHERE kind = 'set'")
+		.first<{ date: string | null }>();
+	const { results } = await db
+		.prepare(
+			`SELECT id, kind, date, amount, label FROM (
+				SELECT id, kind, date, amount,
+					COALESCE(NULLIF(note, ''),
+						CASE kind WHEN 'set' THEN 'Set to actual' ELSE 'Adjustment' END) AS label,
+					CASE kind WHEN 'set' THEN 1 ELSE 0 END AS rank
+				FROM corpus_entries
+				UNION ALL
+				SELECT t.id, 'saving', t.date, t.amount, t.description, 0
+				FROM transactions t JOIN categories c ON c.id = t.category_id
+				WHERE c.savings = 1 AND t.type = 'expense' AND t.date > ?1
+				UNION ALL
+				SELECT id, 'milestone', done_on, -amount, name, 0
+				FROM goals WHERE done = 1 AND done_on > ?1
+			)
+			ORDER BY date, rank, id`,
+		)
+		.bind(start?.date ?? "9999-12-31")
+		.all<CorpusEvent>();
+	return results;
 }
 
 // cheap signature of the transactions in a range; changes when entries are added, removed or edited
