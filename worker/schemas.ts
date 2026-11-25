@@ -60,19 +60,6 @@ export const recurringInput = transactionInput
 
 export type RecurringInput = z.infer<typeof recurringInput>;
 
-export const balanceInput = z
-	.object({
-		recorded_on: z.iso.date(),
-		mf: z.number().int().min(0).optional(),
-		liquid: z.number().int().min(0).optional(),
-	})
-	.refine(
-		(b) => b.mf !== undefined || b.liquid !== undefined,
-		"Nothing to save",
-	);
-
-export type BalanceInput = z.infer<typeof balanceInput>;
-
 export const planInput = z.object({
 	savings: z.number().int().min(0),
 	capex: z.number().int().min(0),

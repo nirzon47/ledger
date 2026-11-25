@@ -1,6 +1,5 @@
 export type {
 	AccountInput,
-	BalanceInput,
 	BudgetInput,
 	CategoryInput,
 	CorpusInput,
@@ -12,7 +11,6 @@ export type {
 export type {
 	Account,
 	AiSummary,
-	Balance,
 	Category,
 	CategoryTotal,
 	CorpusEvent,

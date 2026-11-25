@@ -9,21 +9,20 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { formatMoney } from "@/lib/format";
-import { corpusAt, whenLabel } from "@/lib/goals";
-import { monthLabel, toMonth } from "@/lib/month";
+import { corpusAtMonth, currentCorpus, whenLabel } from "@/lib/goals";
+import { defaultMonth, monthLabel } from "@/lib/month";
 import { queries } from "@/lib/queries";
 
 export function GoalCheckIn({ month }: { month: string }) {
 	const { data: plan } = useSuspenseQuery(queries.plan);
 	const { data: goals } = useSuspenseQuery(queries.goals);
-	const { data: history } = useSuspenseQuery(queries.balanceHistory);
-	const { data: balances } = useSuspenseQuery(queries.balances);
+	const { data: events } = useSuspenseQuery(queries.corpus);
 	const row = plan.find((p) => p.month === month);
 	const next = goals.find((g) => !g.done && g.target_month >= month);
 	if (!row && !next) return null;
 
-	const held = month <= toMonth(new Date()) ? corpusAt(history, month) : null;
-	const total = balances.reduce((sum, b) => sum + b.amount, 0);
+	const held = month <= defaultMonth() ? corpusAtMonth(events, month) : null;
+	const total = currentCorpus(events);
 	const outflows = row
 		? [
 				row.capex && `Capex ${formatMoney(row.capex)}`,

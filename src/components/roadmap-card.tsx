@@ -20,14 +20,15 @@ import {
 } from "@/components/ui/dialog";
 import type { PlanRow } from "@/lib/api";
 import { formatMoney } from "@/lib/format";
-import { corpusAt } from "@/lib/goals";
+import { corpusAtMonth } from "@/lib/goals";
 import { defaultMonth, monthLabel, shiftMonth, toMonth } from "@/lib/month";
 import { queries } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 
 export function RoadmapCard() {
 	const { data: plan } = useSuspenseQuery(queries.plan);
-	const { data: history } = useSuspenseQuery(queries.balanceHistory);
+	const { data: events } = useSuspenseQuery(queries.corpus);
+	const open = defaultMonth();
 	const now = toMonth(new Date());
 	const [editing, setEditing] = useState<PlanRow | "new" | null>(null);
 	const last = plan.at(-1)?.month;
@@ -38,7 +39,7 @@ export function RoadmapCard() {
 				<CardHeader>
 					<CardTitle>Roadmap</CardTitle>
 					<CardDescription>
-						Plan vs what you saved and hold (principal only)
+						Plan vs what you saved and your corpus
 					</CardDescription>
 					<CardAction>
 						<Button variant="ghost" size="sm" onClick={() => setEditing("new")}>
@@ -59,7 +60,9 @@ export function RoadmapCard() {
 									key={p.month}
 									row={p}
 									now={now}
-									corpus={p.month <= now ? corpusAt(history, p.month) : null}
+									corpus={
+										p.month <= open ? corpusAtMonth(events, p.month) : null
+									}
 									onEdit={() => setEditing(p)}
 								/>
 							))}

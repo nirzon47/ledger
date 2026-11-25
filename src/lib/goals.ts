@@ -1,17 +1,22 @@
-import type { Balance } from "./api";
-import { toMonth } from "./month";
+import type { CorpusEvent } from "./api";
+import { defaultMonth, toMonth } from "./month";
 
-// MF + liquid as of the end of `month`, carrying earlier figures forward
-export function corpusAt(history: Balance[], month: string) {
-	const latest = { mf: 0, liquid: 0 };
-	let found = false;
-	for (const b of history) {
-		if (b.recorded_on.slice(0, 7) > month) break;
-		latest[b.kind] = b.amount;
-		found = true;
+// replays movements up to `date`: a set resets the total, everything else adds to it
+export function corpusThrough(events: CorpusEvent[], date: string) {
+	let total: number | null = null;
+	for (const e of events) {
+		if (e.date > date) break;
+		total = e.kind === "set" ? e.amount : (total ?? 0) + e.amount;
 	}
-	return found ? latest.mf + latest.liquid : null;
+	return total;
 }
+
+export const corpusAtMonth = (events: CorpusEvent[], month: string) =>
+	corpusThrough(events, `${month}-31`);
+
+// counts entries already logged for the open month, like a savings transfer dated the 1st
+export const currentCorpus = (events: CorpusEvent[]) =>
+	corpusAtMonth(events, defaultMonth()) ?? 0;
 
 const relative = new Intl.RelativeTimeFormat("en-IN", { numeric: "auto" });
 

@@ -7,7 +7,6 @@ import {
 	type Account,
 	type AiSummary,
 	api,
-	type Balance,
 	type Category,
 	type CorpusEvent,
 	type Goal,
@@ -41,14 +40,6 @@ export const queries = {
 	suggestions: queryOptions({
 		queryKey: ["suggestions"],
 		queryFn: () => api<Suggestion[]>("/suggestions"),
-	}),
-	balances: queryOptions({
-		queryKey: ["balances"],
-		queryFn: () => api<Balance[]>("/balances"),
-	}),
-	balanceHistory: queryOptions({
-		queryKey: ["balances", "history"],
-		queryFn: () => api<Balance[]>("/balances/history"),
 	}),
 	corpus: queryOptions({
 		queryKey: ["corpus"],
@@ -124,7 +115,7 @@ export function ensureMonth(month: string) {
 		queryClient.ensureQueryData({ ...queries.pace(month), ...instant }),
 		queryClient.ensureQueryData({ ...queries.plan, ...instant }),
 		queryClient.ensureQueryData({ ...queries.goals, ...instant }),
-		queryClient.ensureQueryData({ ...queries.balanceHistory, ...instant }),
+		queryClient.ensureQueryData({ ...queries.corpus, ...instant }),
 	]);
 }
 
@@ -145,8 +136,6 @@ export function preloadApp() {
 		queryClient.prefetchQuery(queries.categories),
 		queryClient.prefetchQuery(queries.suggestions),
 		queryClient.prefetchQuery(queries.recurring),
-		queryClient.prefetchQuery(queries.balances),
-		queryClient.prefetchQuery(queries.balanceHistory),
 		queryClient.prefetchQuery(queries.goals),
 		queryClient.prefetchQuery(queries.plan),
 		queryClient.prefetchQuery(queries.corpus),

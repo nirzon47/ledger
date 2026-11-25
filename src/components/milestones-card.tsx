@@ -18,16 +18,16 @@ import {
 } from "@/components/ui/dialog";
 import type { Goal } from "@/lib/api";
 import { formatMoney } from "@/lib/format";
-import { monthsAway, whenLabel } from "@/lib/goals";
+import { currentCorpus, monthsAway, whenLabel } from "@/lib/goals";
 import { monthLabel } from "@/lib/month";
 import { queries } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 
 export function MilestonesCard() {
 	const { data: goals } = useSuspenseQuery(queries.goals);
-	const { data: balances } = useSuspenseQuery(queries.balances);
+	const { data: events } = useSuspenseQuery(queries.corpus);
 	const [editing, setEditing] = useState<Goal | "new" | null>(null);
-	const total = balances.reduce((sum, b) => sum + b.amount, 0);
+	const total = currentCorpus(events);
 	const next = goals.find((g) => !g.done);
 
 	return (
@@ -95,7 +95,7 @@ export function MilestonesCard() {
 												</div>
 												<p className="text-xs text-muted-foreground">
 													{formatMoney(Math.min(total, g.amount))} of{" "}
-													{formatMoney(g.amount)} funded from your balances (
+													{formatMoney(g.amount)} funded from your corpus (
 													{Math.round(funded * 100)}%)
 												</p>
 											</div>
